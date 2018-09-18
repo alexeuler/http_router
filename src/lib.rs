@@ -34,8 +34,13 @@ macro_rules! router {
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
         let mut s = String::new();
         $(
-            s.push('/');
-            s.push_str(stringify!($path_segment));
+            s.push_str(r#"\/"#);
+            let path_segment = stringify!($path_segment);
+            if (path_segment.starts_with('{')) {
+                s.push_str(r#"[\w-]+"#);
+            } else {
+                s.push_str(stringify!($path_segment));
+            }
         )+
         println!("Expected method: {:?}, path: {}", $method, s);
         None
@@ -74,17 +79,6 @@ mod tests {
 
     #[test]
     fn it_works() {
-        // let x = 1;
-        // let id = 2;
-        // trace_macros!(true);
-        // router!{1, 1, 1,
-        //     GET (/users/:id => x),
-        //     _ => yo
-        // };
-        // trace_macros!(false);
-        // println!("{:?}", Method::POST);
-        // assert_eq!(2 + 2, 4);
-
         trace_macros!(true);
         let router = router!(
             _ => yo,
