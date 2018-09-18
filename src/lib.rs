@@ -40,29 +40,34 @@ macro_rules! router {
     //     Some(1)
     // }};
 
-    (@one_route $request:expr, $method:expr, $path:expr, $expected_method:expr, /$($expected_path_segment:ident)/+ => $handler:ident) => {
+    (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:ident)*) => {{
         let mut s = String::new();
         $(
-            s.push_str(stringify!($expected_path_segment));
+            s.push('/');
+            s.push_str(stringify!($path_segment));
         )+
-        println!("Expected method: {}, path: {}", $method, s);
+        println!("Expected method: {:?}, path: {}", $method, s);
         None
+    }};
+
+    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, GET, $handler:ident, $($path_segment:ident)*) => {
+        router!(@one_route_with_method $request, $method, $path, $default, Method::GET, $handler, $($path_segment)*)
     };
 
-    (@many_routes $request:expr, $method:expr, $path:expr, $default:expr, $(GET $($rest:tt)+)*) => {
+    (@many_routes $request:expr, $method:expr, $path:expr, $default:expr, $($method_token:tt /$($path_segment:ident/)* => $handler:ident),*) => {{
         let mut result = None;
         $(
             if result.is_none() {
-                result = router!(@one_route $request, $method, $path, Method::GET, $($rest)+)
+                result = router!(@one_route $request, $method, $path, $default, $method_token, $handler, $($path_segment)*)
             }
         )*
         result.unwrap_or($default($request))
-    };
+    }};
 
     // Entry pattern
-    (_ => $default:ident, $(matchers_tokens:tt)*) => {
-        |request, method, path| => {
-            router!(@many_routes request, method, path, $default, $(matchers_tokens)*)
+    (_ => $default:ident, $($matchers_tokens:tt)*) => {
+        |request, method: Method, path: String| {
+            router!(@many_routes request, method, path, $default, $($matchers_tokens)*)
         }
     };
 
@@ -89,10 +94,11 @@ mod tests {
         // println!("{:?}", Method::POST);
         // assert_eq!(2 + 2, 4);
 
-        trace_macros!(true);
-        router!(
+        // trace_macros!(true);
+        let router = router!(
             _ => yo,
-            GET /users/accounts/transactions => yo,
-        )
+            GET /users/accounts/transactions/ => yo
+        );
+        router(32, Method::GET, "/users".to_string());
     }
 }
