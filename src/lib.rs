@@ -31,16 +31,7 @@ pub enum Method {
 }
 
 macro_rules! router {
-    // (@test_pattern $request:expr, $method:expr, $path: expr,  $test_method: expr, /$($path_segment: ident)/+/:$id:ident => $hander:ident) => {{
-    //     let mut s = String::new();
-    //     $(
-    //         s.push_str(stringify!($path_segment));
-    //     )+
-    //     println!("path: {}, id: {}", s, $id);
-    //     Some(1)
-    // }};
-
-    (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:ident)*) => {{
+    (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
         let mut s = String::new();
         $(
             s.push('/');
@@ -50,11 +41,11 @@ macro_rules! router {
         None
     }};
 
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, GET, $handler:ident, $($path_segment:ident)*) => {
+    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, GET, $handler:ident, $($path_segment:tt)*) => {
         router!(@one_route_with_method $request, $method, $path, $default, Method::GET, $handler, $($path_segment)*)
     };
 
-    (@many_routes $request:expr, $method:expr, $path:expr, $default:expr, $($method_token:tt /$($path_segment:ident/)* => $handler:ident),*) => {{
+    (@many_routes $request:expr, $method:expr, $path:expr, $default:expr, $($method_token:tt $(/$path_segment:tt)* => $handler:ident),*) => {{
         let mut result = None;
         $(
             if result.is_none() {
@@ -66,7 +57,7 @@ macro_rules! router {
 
     // Entry pattern
     (_ => $default:ident, $($matchers_tokens:tt)*) => {
-        |request, method: Method, path: String| {
+        |request, method: Method, path: &str| {
             router!(@many_routes request, method, path, $default, $($matchers_tokens)*)
         }
     };
@@ -94,11 +85,12 @@ mod tests {
         // println!("{:?}", Method::POST);
         // assert_eq!(2 + 2, 4);
 
-        // trace_macros!(true);
+        trace_macros!(true);
         let router = router!(
             _ => yo,
-            GET /users/accounts/transactions/ => yo
+            GET /users/{user_id}/accounts/{account_id}/transactions/{transaction_id} => yo
         );
-        router(32, Method::GET, "/users".to_string());
+        trace_macros!(false);
+        router(32, Method::GET, "/users");
     }
 }
