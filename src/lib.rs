@@ -18,6 +18,8 @@
 //! }
 //! ```
 
+#![feature(trace_macros)]
+#[allow(unused_macros)]
 #[derive(Debug)]
 pub enum Method {
     GET,
@@ -28,39 +30,42 @@ pub enum Method {
     OPTIONS,
 }
 
-#[allow(unused_macros)]
-
 macro_rules! router {
-    // Entry pattern
-    ($request:expr, $method:expr, $path: expr, $(GET /$($path_segment: ident)/+/:$id:ident => $handler: ident),*, _ => $default:ident) => {
+    // (@test_pattern $request:expr, $method:expr, $path: expr,  $test_method: expr, /$($path_segment: ident)/+/:$id:ident => $hander:ident) => {{
+    //     let mut s = String::new();
+    //     $(
+    //         s.push_str(stringify!($path_segment));
+    //     )+
+    //     println!("path: {}, id: {}", s, $id);
+    //     Some(1)
+    // }};
+
+    (@one_route $request:expr, $method:expr, $path:expr, $expected_method:expr, /$($expected_path_segment:ident)/+ => $handler:ident) => {
+        let mut s = String::new();
+        $(
+            s.push_str(stringify!($expected_path_segment));
+        )+
+        println!("Expected method: {}, path: {}", $method, s);
+        None
+    };
+
+    (@many_routes $request:expr, $method:expr, $path:expr, $default:expr, $(GET $($rest:tt)+)*) => {
         let mut result = None;
         $(
             if result.is_none() {
-                result = router!(@test_pattern $request, $method, $path, Method::GET, $($path_segment)+, $id, $handler)
+                result = router!(@one_route $request, $method, $path, Method::GET, $($rest)+)
             }
         )*
         result.unwrap_or($default($request))
     };
 
-    (@test_pattern $request:expr, $method:expr, $path: expr, $test_method: expr, $($path_segment: ident)+, $id:ident, $handler:ident) => {{
-        let mut s = String::new();
-        $(
-            s.push_str(stringify!($path_segment));
-        )+
-        println!("path: {}, id: {}", s, $id);
-        Some(1)
-    }};
-
-
-    (GET $($tail:tt)*) => {
-        router!(Method::GET, $($tail)*)
+    // Entry pattern
+    (_ => $default:ident, $(matchers_tokens:tt)*) => {
+        |request, method, path| => {
+            router!(@many_routes request, method, path, $default, $(matchers_tokens)*)
+        }
     };
-    (POST $($tail:tt)*) => {
-        router!(Method::POST, $($tail)*)
-    };
-    ($route:expr, $x: tt) => {
-        println!("{:?}", $route);
-    }
+
 }
 
 #[cfg(test)]
@@ -73,13 +78,21 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let x = 1;
-        let id = 2;
-        router!{1, 1, 1,
-            GET /users/:id => x,
-            _ => yo
-        };
+        // let x = 1;
+        // let id = 2;
+        // trace_macros!(true);
+        // router!{1, 1, 1,
+        //     GET (/users/:id => x),
+        //     _ => yo
+        // };
+        // trace_macros!(false);
         // println!("{:?}", Method::POST);
-        assert_eq!(2 + 2, 4);
+        // assert_eq!(2 + 2, 4);
+
+        trace_macros!(true);
+        router!(
+            _ => yo,
+            GET /users/accounts/transactions => yo,
+        )
     }
 }
