@@ -37,9 +37,9 @@ pub enum Method {
 }
 
 macro_rules! router {
-    (@parse_type $value:ident, $ty:ty) => { $value.parse::<$ty>().unwrap() };
+    (@parse_type $value:expr, $ty:ty) => { $value.parse::<$ty>().unwrap() };
 
-    (@call_pure $request:expr, $handler:ident, $params:expr, $({$id:ident : $ty:ty : $idx:expr})*) => {{
+    (@call_pure $request:expr, $handler:ident, $params:expr, $({$id:ident : $ty:ty : $idx:expr}),*) => {{
         $handler($request, $({
             let value = $params[$idx];
             router!(@parse_type value, $ty)
@@ -47,17 +47,17 @@ macro_rules! router {
     }};
 
     (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)*) => {{
-        // println!(stringify!($ty1));
-        // $handler($request, $params[0].parse::<$ty1>().unwrap())
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0})
     }};
 
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident} $($p1:ident)*) => {{
-        $handler($request, $params[0])
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)*) => {{
+        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1})
     }};
+
     (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+) => {{
         $handler($request)
     }};
+
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
         let mut s = String::new();
         $(
@@ -127,6 +127,11 @@ mod tests {
         x
     }
 
+    fn yo2(x: u32, y: String, z: u32) -> u32 {
+        println!("Called yo1 with {} and {} and {}", x, y, z);
+        x
+    }
+
 
     #[test]
     fn it_works() {
@@ -137,13 +142,14 @@ mod tests {
         // );
         let router = router!(
             _ => yo,
-            GET /users/transactions/{transaction_id: String}/accounts => yostr
+            // GET /users/transactions/{transaction_id: String}/accounts => yostr
+            GET /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2
             // GET /users/transactions/{transaction_id}/accounts => yo1
             // GET /users/transactions => yo
         );
 
         trace_macros!(false);
         // router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
-        router(32, Method::GET, "/users/transactions/12/accounts");
+        router(32, Method::GET, "/users/transactions/trans_id_string/accounts/555");
     }
 }
