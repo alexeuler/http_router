@@ -63,7 +63,7 @@ macro_rules! router {
     }};
 
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
-        let mut s = String::new();
+        let mut s = "^".to_string();
         $(
             s.push('/');
             let path_segment = stringify!($path_segment);
@@ -73,6 +73,7 @@ macro_rules! router {
                 s.push_str(path_segment);
             }
         )+
+        s.push('$');
         let re = regex::Regex::new(&s).unwrap();
         if let Some(captures) = re.captures($path) {
             let matches: Vec<&str> = captures.iter().skip(1).filter(|x| x.is_some()).map(|x| x.unwrap().as_str()).collect();
@@ -147,10 +148,40 @@ mod tests {
         );
 
         trace_macros!(false);
-        // router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
+        // router(32, Method::GET, "/users/transactions/trans_id_string/accounts/dgdfg");
         assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts"), 33);
         assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts/123"), 34);
-        // assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts/dgdfg"), 32);
+        assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts/dgdfg"), 32);
         assert_eq!(router(32, Method::GET, "/users/transact"), 32);
     }
 }
+
+
+// cargo +nightly rustc -- -Zunstable-options --pretty=expanded
+
+
+//     fn yo(x: u32) -> u32 {
+//         println!("Called yo with {}", x);
+//         x
+//     }
+
+//     fn yo1(x: u32, y: String) -> u32 {
+//         println!("Called yo1 with {} and {}", x, y);
+//         x + 1
+//     }
+
+//     fn yo2(x: u32, y: String, z: u32) -> u32 {
+//         println!("Called yo2 with {} and {} and {}", x, y, z);
+//         x + 2
+//     }
+
+
+// fn dgf132() {
+//         let router = router!(
+//             _ => yo,
+//             // GET /users/transactions/{transaction_id: String}/accounts => yostr
+//             GET /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2,
+//             GET /users/transactions/{transaction_id: String}/accounts => yo1
+//             // GET /users/transactions => yo
+//         );    
+// }
