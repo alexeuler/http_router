@@ -37,7 +37,11 @@ pub enum Method {
 }
 
 macro_rules! router {
-    (@parse_type $value:expr, $ty:ty) => { $value.parse::<$ty>().unwrap() };
+    (@parse_type $value:expr, $ty:ty) => {{
+        let maybe_val = $value.parse::<$ty>();
+        if maybe_val.is_err() { return None };
+        maybe_val.unwrap()
+    }};
 
     (@call_pure $request:expr, $handler:ident, $params:expr, $({$id:ident : $ty:ty : $idx:expr}),*) => {{
         $handler($request, $({
@@ -66,7 +70,7 @@ macro_rules! router {
             if path_segment.starts_with('{') {
                 s.push_str(r#"([\w-]+)"#);
             } else {
-                s.push_str(stringify!($path_segment));
+                s.push_str(path_segment);
             }
         )+
         let re = regex::Regex::new(&s).unwrap();
@@ -88,7 +92,11 @@ macro_rules! router {
         let mut result = None;
         $(
             if result.is_none() {
-                result = router!(@one_route $request, $method, $path, $default, $method_token, $handler, $($path_segment)*)
+                // we use closure here so that we could make early return from macros inside of it
+                let closure = || {
+                    router!(@one_route $request, $method, $path, $default, $method_token, $handler, $($path_segment)*)
+                };
+                result = closure();
             }
         )*
         result.unwrap_or_else(|| $default($request))
@@ -143,8 +151,8 @@ mod tests {
         let router = router!(
             _ => yo,
             // GET /users/transactions/{transaction_id: String}/accounts => yostr
-            GET /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2
-            // GET /users/transactions/{transaction_id}/accounts => yo1
+            GET /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2,
+            GET /users/transactions/{transaction_id}/accounts => yo1
             // GET /users/transactions => yo
         );
 
