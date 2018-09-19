@@ -213,13 +213,30 @@ mod tests {
 
     #[test]
     fn test_home() {
-        let passed = |_: ()| "passed";
+        let get_home = |_: ()| "get_home";
         let unreachable = |_: ()| unreachable!();
         let router = router!(
-            GET / => passed,
+            GET / => get_home,
             _ => unreachable
         );
-        assert_eq!(router((), Method::GET, "/"), "passed");
+        assert_eq!(router((), Method::GET, "/"), "get_home");
+    }
+
+    #[test]
+    fn test_fallback() {
+        let home = |_: ()| "home";
+        let users = |_: ()| "users";
+        let fallback = |_: ()| "fallback";
+        let router = router!(
+            GET / => home,
+            POST /users => users,
+            _ => fallback
+        );
+        assert_eq!(router((), Method::GET, "/"), "home");
+        assert_eq!(router((), Method::POST, "/users"), "users");
+        assert_eq!(router((), Method::GET, "/users"), "fallback");
+        assert_eq!(router((), Method::GET, "/us"), "fallback");
+        assert_eq!(router((), Method::PATCH, "/"), "fallback");
     }
 
     #[test]
