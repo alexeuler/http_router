@@ -26,7 +26,7 @@
 extern crate regex;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Method {
     GET,
     POST,
@@ -63,6 +63,7 @@ macro_rules! router {
     }};
 
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
+        if ($method != $expected_method) { return None };
         let mut s = "^".to_string();
         $(
             s.push('/');
@@ -87,6 +88,26 @@ macro_rules! router {
 
     (@one_route $request:expr, $method:expr, $path:expr, $default:expr, GET, $handler:ident, $($path_segment:tt)*) => {
         router!(@one_route_with_method $request, $method, $path, $default, Method::GET, $handler, $($path_segment)*)
+    };
+
+    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, POST, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $request, $method, $path, $default, Method::POST, $handler, $($path_segment)*)
+    };
+
+    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, PUT, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $request, $method, $path, $default, Method::PUT, $handler, $($path_segment)*)
+    };
+
+    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, PATCH, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $request, $method, $path, $default, Method::PATCH, $handler, $($path_segment)*)
+    };
+
+    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, DELETE, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $request, $method, $path, $default, Method::DELETE, $handler, $($path_segment)*)
+    };
+
+    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, OPTIONS, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $request, $method, $path, $default, Method::OPTIONS, $handler, $($path_segment)*)
     };
 
     (@many_routes $request:expr, $method:expr, $path:expr, $default:expr, $($method_token:tt $(/$path_segment:tt)* => $handler:ident),*) => {{
@@ -142,7 +163,7 @@ mod tests {
         let router = router!(
             _ => yo,
             // GET /users/transactions/{transaction_id: String}/accounts => yostr
-            GET /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2,
+            POST /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2,
             GET /users/transactions/{transaction_id: String}/accounts => yo1
             // GET /users/transactions => yo
         );
@@ -150,8 +171,8 @@ mod tests {
         trace_macros!(false);
         // router(32, Method::GET, "/users/transactions/trans_id_string/accounts/dgdfg");
         assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts"), 33);
-        assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts/123"), 34);
-        assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts/dgdfg"), 32);
+        assert_eq!(router(32, Method::POST, "/users/transactions/trans_id_string/accounts/123"), 34);
+        assert_eq!(router(32, Method::POST, "/users/transactions/trans_id_string/accounts/dgdfg"), 32);
         assert_eq!(router(32, Method::GET, "/users/transact"), 32);
     }
 }
