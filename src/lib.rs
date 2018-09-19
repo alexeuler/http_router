@@ -35,43 +35,62 @@ pub enum Method {
 }
 
 macro_rules! router {
-    (@call 1, $request:expr, $handler:ident, $($rest:tt)+) => {{
+    (@call 2, $request:expr, $handler:ident, $($rest:tt)+) => {{
         panic!("Unexpected call");
     }};
 
-    (@call 0, $request:expr, $handler:ident, $path_segment:tt) => {{
+    (@call 1, $request:expr, $handler:ident, $params:expr, $path_segment:tt) => {{
         let path_segment = stringify!($path_segment);
-        if (path_segment.starts_with('{')) {
-            router!(@call 1, $request, $handler, $path_segment)
+        if path_segment.starts_with('{') {
+            router!(@call 2, $request, $handler, $params, $path_segment)
+        } else {
+            $handler($request, $params[0])
+        }
+    }};
+
+    (@call 1, $request:expr, $handler:ident, $params:expr, $path_segment:tt $($rest:tt)+) => {{
+        let path_segment = stringify!($path_segment);
+        if path_segment.starts_with('{') {
+            router!(@call 2, $request, $handler, $params, $path_segment $($rest)+)
+        } else {
+            router!(@call 1, $request, $handler, $params, $($rest)+)
+        }
+    }};
+
+    (@call 0, $request:expr, $handler:ident, $params:expr, $path_segment:tt) => {{
+        let path_segment = stringify!($path_segment);
+        if path_segment.starts_with('{') {
+            router!(@call 1, $request, $handler, $params, $path_segment)
         } else {
             $handler($request)
         }
     }};
 
-    (@call 0, $request:expr, $handler:ident, $path_segment:tt $($rest:tt)+) => {{
+    (@call 0, $request:expr, $handler:ident, $params:expr, $path_segment:tt $($rest:tt)+) => {{
         let path_segment = stringify!($path_segment);
-        if (path_segment.starts_with('{')) {
-            router!(@call 1, $request, $handler, $path_segment $($rest)+)
+        if path_segment.starts_with('{') {
+            router!(@call 1, $request, $handler, $params, $path_segment $($rest)+)
         } else {
-            router!(@call 0, $request, $handler, $($rest)+)
+            router!(@call 0, $request, $handler, $params, $($rest)+)
         }
     }};
 
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
         let mut s = String::new();
         $(
-            s.push_str(r#"/"#);
+            s.push('/');
             let path_segment = stringify!($path_segment);
-            if (path_segment.starts_with('{')) {
+            if path_segment.starts_with('{') {
                 s.push_str(r#"([\w-]+)"#);
             } else {
                 s.push_str(stringify!($path_segment));
             }
         )+
         let re = regex::Regex::new(&s).unwrap();
-        if re.is_match($path) {
-            println!("Matched: {:?}, path: {}, regex: {}", $method, $path, s);
-            Some(router!(@call 0, $request, $handler, $($path_segment)*))
+        if let Some(captures) = re.captures($path) {
+            let matches: Vec<&str> = captures.iter().skip(1).filter(|x| x.is_some()).map(|x| x.unwrap().as_str()).collect();
+            println!("Matched: {:?}, path: {}, regex: {}, matches: {:?}", $method, $path, s, matches);
+            Some(router!(@call 0, $request, $handler, matches, $($path_segment)*))
         } else {
             println!("Didn't match: {:?}, path: {}, regex: {}", $method, $path, s);
             None
@@ -110,6 +129,11 @@ mod tests {
         x
     }
 
+    fn yo1(x: u32, y: &str) -> u32 {
+        println!("Called yo1 with {} and {}", x, y);
+        x
+    }
+
     #[test]
     fn it_works() {
         trace_macros!(true);
@@ -119,11 +143,11 @@ mod tests {
         // );
         let router = router!(
             _ => yo,
-            GET /users/transactions => yo
+            GET /users/transactions/{transaction_id} => yo1
         );
 
         trace_macros!(false);
         // router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
-        router(32, Method::GET, "/users/transactions");
+        router(32, Method::GET, "/users/transactions/sdg");
     }
 }
