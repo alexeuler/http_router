@@ -35,44 +35,8 @@ pub enum Method {
 }
 
 macro_rules! router {
-    (@call 2, $request:expr, $handler:ident, $($rest:tt)+) => {{
-        panic!("Unexpected call");
-    }};
-
-    (@call 1, $request:expr, $handler:ident, $params:expr, $path_segment:tt) => {{
-        let path_segment = stringify!($path_segment);
-        if path_segment.starts_with('{') {
-            router!(@call 2, $request, $handler, $params, $path_segment)
-        } else {
-            $handler($request, $params[0])
-        }
-    }};
-
-    (@call 1, $request:expr, $handler:ident, $params:expr, $path_segment:tt $($rest:tt)+) => {{
-        let path_segment = stringify!($path_segment);
-        if path_segment.starts_with('{') {
-            router!(@call 2, $request, $handler, $params, $path_segment $($rest)+)
-        } else {
-            router!(@call 1, $request, $handler, $params, $($rest)+)
-        }
-    }};
-
-    (@call 0, $request:expr, $handler:ident, $params:expr, $path_segment:tt) => {{
-        let path_segment = stringify!($path_segment);
-        if path_segment.starts_with('{') {
-            router!(@call 1, $request, $handler, $params, $path_segment)
-        } else {
-            $handler($request)
-        }
-    }};
-
-    (@call 0, $request:expr, $handler:ident, $params:expr, $path_segment:tt $($rest:tt)+) => {{
-        let path_segment = stringify!($path_segment);
-        if path_segment.starts_with('{') {
-            router!(@call 1, $request, $handler, $params, $path_segment $($rest)+)
-        } else {
-            router!(@call 0, $request, $handler, $params, $($rest)+)
-        }
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident}) => {{
+        $handler($request, $params[0])
     }};
 
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
@@ -90,7 +54,7 @@ macro_rules! router {
         if let Some(captures) = re.captures($path) {
             let matches: Vec<&str> = captures.iter().skip(1).filter(|x| x.is_some()).map(|x| x.unwrap().as_str()).collect();
             println!("Matched: {:?}, path: {}, regex: {}, matches: {:?}", $method, $path, s, matches);
-            Some(router!(@call 0, $request, $handler, matches, $($path_segment)*))
+            Some(router!(@call, $request, $handler, matches, $($path_segment)*))
         } else {
             println!("Didn't match: {:?}, path: {}, regex: {}", $method, $path, s);
             None
