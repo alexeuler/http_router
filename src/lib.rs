@@ -20,7 +20,7 @@
 //! }
 //! ```
 
-#![feature(trace_macros)]
+// #![feature(trace_macros)]
 #[allow(unused_macros)]
 
 extern crate regex;
@@ -58,12 +58,32 @@ macro_rules! router {
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1})
     }};
 
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)*) => {{
+        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2})
+    }};
+
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)*) => {{
+        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3})
+    }};
+
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)*) => {{
+        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4})
+    }};
+
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)*) => {{
+        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4}, {$id6 : $ty6 : 5})
+    }};
+
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)* {$id7:ident : $ty7:ty} $($p7:ident)*) => {{
+        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4}, {$id6 : $ty6 : 5}, {$id6 : $ty6 : 6})
+    }};
+
     (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+) => {{
         $handler($request)
     }};
 
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
-        if ($method != $expected_method) { return None };
+        if $method != $expected_method { return None };
         let mut s = "^".to_string();
         $(
             s.push('/');
@@ -110,27 +130,22 @@ macro_rules! router {
         router!(@one_route_with_method $request, $method, $path, $default, Method::OPTIONS, $handler, $($path_segment)*)
     };
 
-    (@many_routes $request:expr, $method:expr, $path:expr, $default:expr, $($method_token:tt $(/$path_segment:tt)* => $handler:ident),*) => {{
-        let mut result = None;
-        $(
-            if result.is_none() {
-                // we use closure here so that we could make early return from macros inside of it
-                let closure = || {
-                    router!(@one_route $request, $method, $path, $default, $method_token, $handler, $($path_segment)*)
-                };
-                result = closure();
-            }
-        )*
-        result.unwrap_or_else(|| $default($request))
-    }};
-
     // Entry pattern
-    (_ => $default:ident, $($matchers_tokens:tt)*) => {
+    ($($method_token:ident $(/$path_segment:tt)+ => $handler:ident),* , _ => $default:ident $(,)*) => {{
         |request, method: Method, path: &str| {
-            router!(@many_routes request, method, path, $default, $($matchers_tokens)*)
+            let mut result = None;
+            $(
+                if result.is_none() {
+                    // we use closure here so that we could make early return from macros inside of it
+                    let closure = || {
+                        router!(@one_route request, method, path, $default, $method_token, $handler, $($path_segment)*)
+                    };
+                    result = closure();
+                }
+            )*
+            result.unwrap_or_else(|| $default(request))
         }
-    };
-
+    }};
 }
 
 #[cfg(test)]
@@ -155,20 +170,20 @@ mod tests {
 
     #[test]
     fn it_works() {
-        trace_macros!(true);
+        // trace_macros!(true);
         // let router = router!(
         //     _ => yo,
         //     GET /users/{user_id}/accounts/{account_id}/transactions/{transaction_id} => yo
         // );
         let router = router!(
-            _ => yo,
             // GET /users/transactions/{transaction_id: String}/accounts => yostr
             POST /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2,
-            GET /users/transactions/{transaction_id: String}/accounts => yo1
+            GET /users/transactions/{transaction_id: String}/accounts => yo1,
+            _ => yo,
             // GET /users/transactions => yo
         );
 
-        trace_macros!(false);
+        // trace_macros!(false);
         // router(32, Method::GET, "/users/transactions/trans_id_string/accounts/dgdfg");
         assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts"), 33);
         assert_eq!(router(32, Method::POST, "/users/transactions/trans_id_string/accounts/123"), 34);
