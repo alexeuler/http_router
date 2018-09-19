@@ -1,10 +1,13 @@
 [package]
-name = "http-router"
+name = "http_router"
 version = "0.1.0"
 authors = ["Алексей Карасев <karasev.alexey@gmail.com>"]
 
 [lib]
 doctest = false
+
+[features]
+unstable = []
 
 [dependencies]
 regex = "1"
