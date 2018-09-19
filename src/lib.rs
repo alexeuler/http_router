@@ -27,7 +27,7 @@
 extern crate regex;
 
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Method {
     GET,
     POST,
@@ -213,16 +213,16 @@ mod tests {
 
     #[test]
     fn test_real_life() {
-        let get_users = |_: ()| "get_users";
-        let post_users = |_: ()| "post_users";
+        let get_users = |_: ()| "get_users".to_string();
+        let post_users = |_: ()| "post_users".to_string();
         let patch_users = |_: (), id: u32| format!("patch_users({})", id);
         let delete_users = |_: (), id: u32| format!("delete_users({})", id);
         let get_transactions = |_: (), id: u32| format!("get_transactions({})", id);
         let post_transactions = |_: (), id: u32| format!("post_transactions({})", id);
         let patch_transactions = |_: (), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
         let delete_transactions = |_: (), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
+        let fallback = |_: ()| "404".to_string();
 
-        let fallback = |_: ()| "404";
         let router = router!(
             GET / => get_users,
             GET /users => get_users,
@@ -235,6 +235,25 @@ mod tests {
             DELETE /users/{user_id: u32}/transactions/{hash: String} => delete_transactions,
             _ => fallback,
         );
+        let test_cases = [
+            (Method::GET, "/", "get_users"),
+            (Method::GET, "/users", "get_users"),
+            (Method::POST, "/users", "post_users"),
+            (Method::PATCH, "/users/12", "patch_users(12)"),
+            (Method::DELETE, "/users/132134", "delete_users(132134)"),
+            (Method::GET, "/users/534/transactions", "get_transactions(534)"),
+            (Method::POST, "/users/534/transactions", "post_transactions(534)"),
+            (Method::PATCH, "/users/534/transactions/0x234", "patch_transactions(534, 0x234)"),
+            (Method::DELETE, "/users/534/transactions/0x234", "delete_transactions(534, 0x234)"),
+            (Method::DELETE, "/users/5d34/transactions/0x234", "404"),
+            (Method::POST, "/users/534/transactions/0x234", "404"),
+            (Method::GET, "/u", "404"),
+            (Method::POST, "/", "404"),
+        ];
+        for test_case in test_cases.into_iter() {
+            let (method, path, expected) = test_case.clone();
+            assert_eq!(router((), method.clone(), path), expected.to_string());
+        }
     }
 
     #[test]
