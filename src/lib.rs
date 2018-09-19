@@ -212,6 +212,32 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_real_life() {
+        let get_users = |_: ()| "get_users";
+        let post_users = |_: ()| "post_users";
+        let patch_users = |_: (), id: u32| format!("patch_users({})", id);
+        let delete_users = |_: (), id: u32| format!("delete_users({})", id);
+        let get_transactions = |_: (), id: u32| format!("get_transactions({})", id);
+        let post_transactions = |_: (), id: u32| format!("post_transactions({})", id);
+        let patch_transactions = |_: (), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
+        let delete_transactions = |_: (), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
+
+        let fallback = |_: ()| "404";
+        let router = router!(
+            GET / => get_users,
+            GET /users => get_users,
+            POST /users => post_users,
+            PATCH /users/{user_id: u32} => patch_users,
+            DELETE /users/{user_id: u32} => delete_users,
+            GET /users/{user_id: u32}/transactions => get_transactions,
+            POST /users/{user_id: u32}/transactions => post_transactions,
+            PATCH /users/{user_id: u32}/transactions/{hash: String} => patch_transactions,
+            DELETE /users/{user_id: u32}/transactions/{hash: String} => delete_transactions,
+            _ => fallback,
+        );
+    }
+
+    #[test]
     fn test_home() {
         let get_home = |_: ()| "get_home";
         let unreachable = |_: ()| unreachable!();
