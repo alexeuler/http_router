@@ -1,3 +1,5 @@
+#![allow(unused_mut)]
+
 //! This is an abstract http router that can be used with any library, incl. Hyper, Actix, etc.
 //! Usage:
 //!
@@ -21,7 +23,6 @@
 //! ```
 
 // #![feature(trace_macros)]
-#[allow(unused_macros)]
 
 extern crate regex;
 
@@ -56,42 +57,42 @@ macro_rules! router {
     }};
 
     // Extract params from route, 0 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)*) => {{
         $handler($request)
     }};
 
     // Extract params from route, 1 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)*) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)*) => {{
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0})
     }};
 
     // Extract params from route, 2 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)*) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)*) => {{
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1})
     }};
 
     // Extract params from route, 3 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)*) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)*) => {{
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2})
     }};
 
     // Extract params from route, 4 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)*) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)*) => {{
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3})
     }};
 
     // Extract params from route, 5 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)*) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)*) => {{
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4})
     }};
 
     // Extract params from route, 6 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)*) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)*) => {{
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4}, {$id6 : $ty6 : 5})
     }};
 
     // Extract params from route, 7 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)* {$id7:ident : $ty7:ty} $($p7:ident)*) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)* {$id7:ident : $ty7:ty} $($p7:ident)*) => {{
         router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4}, {$id6 : $ty6 : 5}, {$id6 : $ty6 : 6})
     }};
 
@@ -107,7 +108,9 @@ macro_rules! router {
             } else {
                 s.push_str(path_segment);
             }
-        )+
+        )*
+        // handle home case
+        if s.len() == 1 { s.push('/') }
         s.push('$');
         let re = regex::Regex::new(&s).unwrap();
         if let Some(captures) = re.captures($path) {
@@ -160,7 +163,7 @@ macro_rules! router {
     };
 
     // Entry pattern
-    ($($method_token:ident $(/$path_segment:tt)+ => $handler:ident),* , _ => $default:ident $(,)*) => {{
+    ($($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
         |request, method: Method, path: &str| {
             let mut result = None;
             $(
@@ -176,6 +179,27 @@ macro_rules! router {
         }
     }};
 
+    // Entry pattern - with home first
+    ($home_method_token:ident / => $home_handler:ident, $($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
+        |request, method: Method, path: &str| {
+            let closure = || {
+                router!(@one_route request, method, path, $default, $home_method_token, $home_handler,)
+            };
+            let mut result = closure();
+            $(
+                if result.is_none() {
+                    // we use closure here so that we could make early return from macros inside of it
+                    let closure = || {
+                        router!(@one_route request, method, path, $default, $method_token, $handler, $($path_segment)*)
+                    };
+                    result = closure();
+                }
+            )*
+            result.unwrap_or_else(|| $default(request))
+        }
+    }};
+
+    // Entry pattern - default only
     (_ => $default:ident $(,)*) => {
         |request, _method: Method, _path: &str| {
             $default(request)
@@ -186,6 +210,17 @@ macro_rules! router {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_home() {
+        let passed = |_: ()| "passed";
+        let unreachable = |_: ()| unreachable!();
+        let router = router!(
+            GET / => passed,
+            _ => unreachable
+        );
+        assert_eq!(router((), Method::GET, "/"), "passed");
+    }
 
     #[test]
     fn test_verbs() {
@@ -300,28 +335,25 @@ mod tests {
 // cargo +nightly rustc -- -Zunstable-options --pretty=expanded
 
 
-//     fn yo(x: u32) -> u32 {
-//         println!("Called yo with {}", x);
-//         x
-//     }
-
-//     fn yo1(x: u32, y: String) -> u32 {
-//         println!("Called yo1 with {} and {}", x, y);
-//         x + 1
-//     }
-
-//     fn yo2(x: u32, y: String, z: u32) -> u32 {
-//         println!("Called yo2 with {} and {} and {}", x, y, z);
-//         x + 2
-//     }
-
-
-// fn dgf132() {
-//         let router = router!(
-//             _ => yo,
-//             // GET /users/transactions/{transaction_id: String}/accounts => yostr
-//             GET /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2,
-//             GET /users/transactions/{transaction_id: String}/accounts => yo1
-//             // GET /users/transactions => yo
-//         );    
-// }
+    // fn test_params_number() {
+    //     let zero = |_: (), | String::new();
+    //     let one = |_: (), p1: String| format!("{}", &p1);
+    //     let two = |_: (), p1: String, p2: String| format!("{}{}", &p1, &p2);
+    //     let three = |_: (), p1: String, p2: String, p3: String| format!("{}{}{}", &p1, &p2, &p3);
+    //     let four = |_: (), p1: String, p2: String, p3: String, p4: String| format!("{}{}{}{}", &p1, &p2, &p3, &p4);
+    //     let five = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String| format!("{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5);
+    //     let six = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String| format!("{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6);
+    //     let seven = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String, p7: String| format!("{}{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6, &p7);
+    //     let unreachable = |_: ()| unreachable!();
+    //     let router = router!(
+    //         GET /users => zero,
+    //         GET /users/{p1: String} => one,
+    //         GET /users/{p1: String}/users2/{p2: String} => two,
+    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String} => three,
+    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String} => four,
+    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String} => five,
+    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String}/users6/{p6: String} => six,
+    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String}/users6/{p6: String}/users7/{p7: String} => seven,
+    //         _ => unreachable,
+    //     );
+    // }
