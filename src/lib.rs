@@ -164,7 +164,7 @@ macro_rules! router {
 
     // Entry pattern
     ($($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
-        |request, method: Method, path: &str| {
+        move |request, method: Method, path: &str| {
             let mut result = None;
             $(
                 if result.is_none() {
@@ -181,7 +181,7 @@ macro_rules! router {
 
     // Entry pattern - with home first
     ($home_method_token:ident / => $home_handler:ident, $($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
-        |request, method: Method, path: &str| {
+        move |request, method: Method, path: &str| {
             let closure = || {
                 router!(@one_route request, method, path, $default, $home_method_token, $home_handler,)
             };
@@ -209,7 +209,12 @@ macro_rules! router {
 
 #[cfg(test)]
 mod tests {
+    extern crate rand;
+    use std::thread;
     use super::*;
+
+    const NUMBER_OF_THREADS_FOR_REAL_LIFE_TEST: usize = 20;
+    const NUMBER_OF_TESTS_FOR_REAL_LIFE_TEST: usize = 100;
 
     #[test]
     fn test_real_life() {
@@ -253,6 +258,22 @@ mod tests {
         for test_case in test_cases.into_iter() {
             let (method, path, expected) = test_case.clone();
             assert_eq!(router((), method.clone(), path), expected.to_string());
+        }
+
+        let mut threads: Vec<thread::JoinHandle<_>> = Vec::new();
+        for _ in 0..NUMBER_OF_THREADS_FOR_REAL_LIFE_TEST {
+            let handle = thread::spawn(move || {
+                for _ in 0..NUMBER_OF_TESTS_FOR_REAL_LIFE_TEST {
+                    let number = rand::random::<usize>() % test_cases.len();
+                    let test_case = test_cases[number];
+                    let (method, path, expected) = test_case;
+                    assert_eq!(router((), method.clone(), path), expected.to_string());
+                }
+            });
+            threads.push(handle);
+        }
+        for thread in threads {
+            let _ = thread.join();
         }
     }
 
@@ -352,70 +373,7 @@ mod tests {
         assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6"), "id1id2id3id4id5id6");
         assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6/users7/id7"), "id1id2id3id4id5id6id7");
     }
-
-    fn yo(x: u32) -> u32 {
-        println!("Called yo with {}", x);
-        x
-    }
-
-    fn yo1(x: u32, y: String) -> u32 {
-        println!("Called yo1 with {} and {}", x, y);
-        x + 1
-    }
-
-    fn yo2(x: u32, y: String, z: u32) -> u32 {
-        println!("Called yo2 with {} and {} and {}", x, y, z);
-        x + 2
-    }
-
-
-    #[test]
-    fn it_works() {
-        // trace_macros!(true);
-        // let router = router!(
-        //     _ => yo,
-        //     GET /users/{user_id}/accounts/{account_id}/transactions/{transaction_id} => yo
-        // );
-        let router = router!(
-            // GET /users/transactions/{transaction_id: String}/accounts => yostr
-            POST /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2,
-            GET /users/transactions/{transaction_id: String}/accounts => yo1,
-            _ => yo,
-            // GET /users/transactions => yo
-        );
-
-        // trace_macros!(false);
-        // router(32, Method::GET, "/users/transactions/trans_id_string/accounts/dgdfg");
-        assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts"), 33);
-        assert_eq!(router(32, Method::POST, "/users/transactions/trans_id_string/accounts/123"), 34);
-        assert_eq!(router(32, Method::POST, "/users/transactions/trans_id_string/accounts/dgdfg"), 32);
-        assert_eq!(router(32, Method::GET, "/users/transact"), 32);
-    }
 }
 
 
 // cargo +nightly rustc -- -Zunstable-options --pretty=expanded
-
-
-    // fn test_params_number() {
-    //     let zero = |_: (), | String::new();
-    //     let one = |_: (), p1: String| format!("{}", &p1);
-    //     let two = |_: (), p1: String, p2: String| format!("{}{}", &p1, &p2);
-    //     let three = |_: (), p1: String, p2: String, p3: String| format!("{}{}{}", &p1, &p2, &p3);
-    //     let four = |_: (), p1: String, p2: String, p3: String, p4: String| format!("{}{}{}{}", &p1, &p2, &p3, &p4);
-    //     let five = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String| format!("{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5);
-    //     let six = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String| format!("{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6);
-    //     let seven = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String, p7: String| format!("{}{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6, &p7);
-    //     let unreachable = |_: ()| unreachable!();
-    //     let router = router!(
-    //         GET /users => zero,
-    //         GET /users/{p1: String} => one,
-    //         GET /users/{p1: String}/users2/{p2: String} => two,
-    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String} => three,
-    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String} => four,
-    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String} => five,
-    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String}/users6/{p6: String} => six,
-    //         GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String}/users6/{p6: String}/users7/{p7: String} => seven,
-    //         _ => unreachable,
-    //     );
-    // }
