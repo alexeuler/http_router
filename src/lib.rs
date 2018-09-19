@@ -175,11 +175,53 @@ macro_rules! router {
             result.unwrap_or_else(|| $default(request))
         }
     }};
+
+    (_ => $default:ident $(,)*) => {
+        |request, _method: Method, _path: &str| {
+            $default(request)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_verbs() {
+        let get_test = |_: usize| Method::GET;
+        let post_test = |_: usize| Method::POST;
+        let put_test = |_: usize| Method::PUT;
+        let patch_test = |_: usize| Method::PATCH;
+        let delete_test = |_: usize| Method::DELETE;
+        let connect_test = |_: usize| Method::CONNECT;
+        let options_test = |_: usize| Method::OPTIONS;
+        let trace_test = |_: usize| Method::TRACE;
+        let head_test = |_: usize| Method::HEAD;
+        let panic_test = |_: usize| unreachable!();
+        let router = router!(
+            GET /users => get_test,
+            POST /users => post_test,
+            PUT /users => put_test,
+            PATCH /users => patch_test,
+            DELETE /users => delete_test,
+            OPTIONS /users => options_test,
+            CONNECT /users => connect_test,
+            TRACE /users => trace_test,
+            HEAD /users => head_test,
+            _ => panic_test
+        );
+
+        assert_eq!(router(0, Method::GET, "/users"), Method::GET);
+        assert_eq!(router(0, Method::POST, "/users"), Method::POST);
+        assert_eq!(router(0, Method::PUT, "/users"), Method::PUT);
+        assert_eq!(router(0, Method::PATCH, "/users"), Method::PATCH);
+        assert_eq!(router(0, Method::DELETE, "/users"), Method::DELETE);
+        assert_eq!(router(0, Method::OPTIONS, "/users"), Method::OPTIONS);
+        assert_eq!(router(0, Method::TRACE, "/users"), Method::TRACE);
+        assert_eq!(router(0, Method::CONNECT, "/users"), Method::CONNECT);
+        assert_eq!(router(0, Method::HEAD, "/users"), Method::HEAD);
+    }
 
     fn yo(x: u32) -> u32 {
         println!("Called yo with {}", x);
