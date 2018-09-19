@@ -7,3 +7,4 @@ authors = ["Алексей Карасев <karasev.alexey@gmail.com>"]
 doctest = false
 
 [dependencies]
+regex = "1"

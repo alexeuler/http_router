@@ -20,6 +20,10 @@
 
 #![feature(trace_macros)]
 #[allow(unused_macros)]
+
+extern crate regex;
+
+
 #[derive(Debug)]
 pub enum Method {
     GET,
@@ -34,15 +38,20 @@ macro_rules! router {
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
         let mut s = String::new();
         $(
-            s.push_str(r#"\/"#);
+            s.push_str(r#"/"#);
             let path_segment = stringify!($path_segment);
             if (path_segment.starts_with('{')) {
-                s.push_str(r#"[\w-]+"#);
+                s.push_str(r#"([\w-]+)"#);
             } else {
                 s.push_str(stringify!($path_segment));
             }
         )+
-        println!("Expected method: {:?}, path: {}", $method, s);
+        let re = regex::Regex::new(&s).unwrap();
+        if re.is_match($path) {
+            println!("Matched: {:?}, path: {}, regex: {}", $method, $path, s);
+        } else {
+            println!("Didn't match: {:?}, path: {}, regex: {}", $method, $path, s);
+        }
         None
     }};
 
@@ -85,6 +94,6 @@ mod tests {
             GET /users/{user_id}/accounts/{account_id}/transactions/{transaction_id} => yo
         );
         trace_macros!(false);
-        router(32, Method::GET, "/users");
+        router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
     }
 }
