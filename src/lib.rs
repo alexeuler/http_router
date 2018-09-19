@@ -111,8 +111,8 @@ macro_rules! router {
         s.push('$');
         let re = regex::Regex::new(&s).unwrap();
         if let Some(captures) = re.captures($path) {
-            let matches: Vec<&str> = captures.iter().skip(1).filter(|x| x.is_some()).map(|x| x.unwrap().as_str()).collect();
-            Some(router!(@call, $request, $handler, matches, $($path_segment)*))
+            let _matches: Vec<&str> = captures.iter().skip(1).filter(|x| x.is_some()).map(|x| x.unwrap().as_str()).collect();
+            Some(router!(@call, $request, $handler, _matches, $($path_segment)*))
         } else {
             None
         }
