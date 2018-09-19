@@ -35,10 +35,12 @@ pub enum Method {
 }
 
 macro_rules! router {
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident}) => {{
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident} $($p1:ident)*) => {{
         $handler($request, $params[0])
     }};
-
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+) => {{
+        $handler($request)
+    }};
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
         let mut s = String::new();
         $(
@@ -107,11 +109,12 @@ mod tests {
         // );
         let router = router!(
             _ => yo,
-            GET /users/transactions/{transaction_id} => yo1
+            GET /users/transactions/{transaction_id}/accounts => yo1
+            // GET /users/transactions => yo
         );
 
         trace_macros!(false);
         // router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
-        router(32, Method::GET, "/users/transactions/sdg");
+        router(32, Method::GET, "/users/transactions/sdg/accounts");
     }
 }
