@@ -50,8 +50,7 @@ fn bench_router(b: &mut Bencher) {
 
     b.iter(|| {
         let number = rand::random::<usize>() % test_cases.len();
-        let test_case = test_cases[number];
-        let (method, path, expected) = test_case;
+        let (method, path, expected) = test_cases[number];
         let _ = router((), method.clone(), path);
     });
 }
