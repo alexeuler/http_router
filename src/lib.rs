@@ -35,6 +35,10 @@ pub enum Method {
 }
 
 macro_rules! router {
+    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)*) => {{
+        $handler($request, $params[0].parse::<$ty1>().unwrap())
+    }};
+
     (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident} $($p1:ident)*) => {{
         $handler($request, $params[0])
     }};
@@ -100,6 +104,12 @@ mod tests {
         x
     }
 
+    fn yoint(x: u32, y: u32) -> u32 {
+        println!("Called yo1 with {} and {}", x, y);
+        x
+    }
+
+
     #[test]
     fn it_works() {
         trace_macros!(true);
@@ -109,12 +119,13 @@ mod tests {
         // );
         let router = router!(
             _ => yo,
-            GET /users/transactions/{transaction_id}/accounts => yo1
+            GET /users/transactions/{transaction_id: u32}/accounts => yoint
+            // GET /users/transactions/{transaction_id}/accounts => yo1
             // GET /users/transactions => yo
         );
 
         trace_macros!(false);
         // router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
-        router(32, Method::GET, "/users/transactions/sdg/accounts");
+        router(32, Method::GET, "/users/transactions/12/accounts");
     }
 }
