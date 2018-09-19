@@ -189,16 +189,16 @@ mod tests {
 
     #[test]
     fn test_verbs() {
-        let get_test = |_: usize| Method::GET;
-        let post_test = |_: usize| Method::POST;
-        let put_test = |_: usize| Method::PUT;
-        let patch_test = |_: usize| Method::PATCH;
-        let delete_test = |_: usize| Method::DELETE;
-        let connect_test = |_: usize| Method::CONNECT;
-        let options_test = |_: usize| Method::OPTIONS;
-        let trace_test = |_: usize| Method::TRACE;
-        let head_test = |_: usize| Method::HEAD;
-        let panic_test = |_: usize| unreachable!();
+        let get_test = |_: ()| Method::GET;
+        let post_test = |_: ()| Method::POST;
+        let put_test = |_: ()| Method::PUT;
+        let patch_test = |_: ()| Method::PATCH;
+        let delete_test = |_: ()| Method::DELETE;
+        let connect_test = |_: ()| Method::CONNECT;
+        let options_test = |_: ()| Method::OPTIONS;
+        let trace_test = |_: ()| Method::TRACE;
+        let head_test = |_: ()| Method::HEAD;
+        let panic_test = |_: ()| unreachable!();
         let router = router!(
             GET /users => get_test,
             POST /users => post_test,
@@ -212,15 +212,15 @@ mod tests {
             _ => panic_test
         );
 
-        assert_eq!(router(0, Method::GET, "/users"), Method::GET);
-        assert_eq!(router(0, Method::POST, "/users"), Method::POST);
-        assert_eq!(router(0, Method::PUT, "/users"), Method::PUT);
-        assert_eq!(router(0, Method::PATCH, "/users"), Method::PATCH);
-        assert_eq!(router(0, Method::DELETE, "/users"), Method::DELETE);
-        assert_eq!(router(0, Method::OPTIONS, "/users"), Method::OPTIONS);
-        assert_eq!(router(0, Method::TRACE, "/users"), Method::TRACE);
-        assert_eq!(router(0, Method::CONNECT, "/users"), Method::CONNECT);
-        assert_eq!(router(0, Method::HEAD, "/users"), Method::HEAD);
+        assert_eq!(router((), Method::GET, "/users"), Method::GET);
+        assert_eq!(router((), Method::POST, "/users"), Method::POST);
+        assert_eq!(router((), Method::PUT, "/users"), Method::PUT);
+        assert_eq!(router((), Method::PATCH, "/users"), Method::PATCH);
+        assert_eq!(router((), Method::DELETE, "/users"), Method::DELETE);
+        assert_eq!(router((), Method::OPTIONS, "/users"), Method::OPTIONS);
+        assert_eq!(router((), Method::TRACE, "/users"), Method::TRACE);
+        assert_eq!(router((), Method::CONNECT, "/users"), Method::CONNECT);
+        assert_eq!(router((), Method::HEAD, "/users"), Method::HEAD);
     }
 
     fn yo(x: u32) -> u32 {
