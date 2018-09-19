@@ -35,6 +35,28 @@ pub enum Method {
 }
 
 macro_rules! router {
+    (@call 1, $request:expr, $handler:ident, $($rest:tt)+) => {{
+        panic!("Unexpected call");
+    }};
+
+    (@call 0, $request:expr, $handler:ident, $path_segment:tt) => {{
+        let path_segment = stringify!($path_segment);
+        if (path_segment.starts_with('{')) {
+            router!(@call 1, $request, $handler, $path_segment)
+        } else {
+            $handler($request)
+        }
+    }};
+
+    (@call 0, $request:expr, $handler:ident, $path_segment:tt $($rest:tt)+) => {{
+        let path_segment = stringify!($path_segment);
+        if (path_segment.starts_with('{')) {
+            router!(@call 1, $request, $handler, $path_segment $($rest)+)
+        } else {
+            router!(@call 0, $request, $handler, $($rest)+)
+        }
+    }};
+
     (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
         let mut s = String::new();
         $(
@@ -49,10 +71,11 @@ macro_rules! router {
         let re = regex::Regex::new(&s).unwrap();
         if re.is_match($path) {
             println!("Matched: {:?}, path: {}, regex: {}", $method, $path, s);
+            Some(router!(@call 0, $request, $handler, $($path_segment)*))
         } else {
             println!("Didn't match: {:?}, path: {}, regex: {}", $method, $path, s);
+            None
         }
-        None
     }};
 
     (@one_route $request:expr, $method:expr, $path:expr, $default:expr, GET, $handler:ident, $($path_segment:tt)*) => {
@@ -66,7 +89,7 @@ macro_rules! router {
                 result = router!(@one_route $request, $method, $path, $default, $method_token, $handler, $($path_segment)*)
             }
         )*
-        result.unwrap_or($default($request))
+        result.unwrap_or_else(|| $default($request))
     }};
 
     // Entry pattern
@@ -83,17 +106,24 @@ mod tests {
     use super::*;
 
     fn yo(x: u32) -> u32 {
+        println!("Called yo with {}", x);
         x
     }
 
     #[test]
     fn it_works() {
         trace_macros!(true);
+        // let router = router!(
+        //     _ => yo,
+        //     GET /users/{user_id}/accounts/{account_id}/transactions/{transaction_id} => yo
+        // );
         let router = router!(
             _ => yo,
-            GET /users/{user_id}/accounts/{account_id}/transactions/{transaction_id} => yo
+            GET /users/transactions => yo
         );
+
         trace_macros!(false);
-        router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
+        // router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
+        router(32, Method::GET, "/users/transactions");
     }
 }
