@@ -35,8 +35,18 @@ pub enum Method {
 }
 
 macro_rules! router {
+    (@call_pure $request:expr, $handler:ident, $params:expr, $({$id:ident : $ty:ty})*) => {{
+        let mut i: isize = -1;
+        $handler($request, $({
+            i += 1;
+            $params[i as usize].parse::<$ty>().unwrap()
+        }),*)
+    }};
+
     (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)*) => {{
-        $handler($request, $params[0].parse::<$ty1>().unwrap())
+        // println!(stringify!($ty1));
+        // $handler($request, $params[0].parse::<$ty1>().unwrap())
+        router!(@call_pure $request, $handler, $params, {$id1 : $ty1})
     }};
 
     (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident} $($p1:ident)*) => {{
