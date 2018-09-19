@@ -223,6 +223,39 @@ mod tests {
         assert_eq!(router((), Method::HEAD, "/users"), Method::HEAD);
     }
 
+    #[test]
+    fn test_params_number() {
+        let zero = |_: (), | String::new();
+        let one = |_: (), p1: String| format!("{}", &p1);
+        let two = |_: (), p1: String, p2: String| format!("{}{}", &p1, &p2);
+        let three = |_: (), p1: String, p2: String, p3: String| format!("{}{}{}", &p1, &p2, &p3);
+        let four = |_: (), p1: String, p2: String, p3: String, p4: String| format!("{}{}{}{}", &p1, &p2, &p3, &p4);
+        let five = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String| format!("{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5);
+        let six = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String| format!("{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6);
+        let seven = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String, p7: String| format!("{}{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6, &p7);
+        let unreachable = |_: ()| unreachable!();
+        let router = router!(
+            GET /users => zero,
+            GET /users/{p1: String} => one,
+            GET /users/{p1: String}/users2/{p2: String} => two,
+            GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String} => three,
+            GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String} => four,
+            GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String} => five,
+            GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String}/users6/{p6: String} => six,
+            GET /users/{p1: String}/users2/{p2: String}/users3/{p3: String}/users4/{p4: String}/users5/{p5: String}/users6/{p6: String}/users7/{p7: String} => seven,
+            _ => unreachable,
+        );
+
+        assert_eq!(router((), Method::GET, "/users"), "");
+        assert_eq!(router((), Method::GET, "/users/id1"), "id1");
+        assert_eq!(router((), Method::GET, "/users/id1/users2/id2"), "id1id2");
+        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3"), "id1id2id3");
+        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4"), "id1id2id3id4");
+        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5"), "id1id2id3id4id5");
+        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6"), "id1id2id3id4id5id6");
+        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6/users7/id7"), "id1id2id3id4id5id6id7");
+    }
+
     fn yo(x: u32) -> u32 {
         println!("Called yo with {}", x);
         x
