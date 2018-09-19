@@ -120,24 +120,14 @@ mod tests {
         x
     }
 
-    fn yo1(x: u32, y: &str) -> u32 {
+    fn yo1(x: u32, y: String) -> u32 {
         println!("Called yo1 with {} and {}", x, y);
-        x
-    }
-
-    fn yoint(x: u32, y: u32) -> u32 {
-        println!("Called yo1 with {} and {}", x, y);
-        x
-    }
-
-    fn yostr(x: u32, y: String) -> u32 {
-        println!("Called yo1 with {} and {}", x, y);
-        x
+        x + 1
     }
 
     fn yo2(x: u32, y: String, z: u32) -> u32 {
-        println!("Called yo1 with {} and {} and {}", x, y, z);
-        x
+        println!("Called yo2 with {} and {} and {}", x, y, z);
+        x + 2
     }
 
 
@@ -152,12 +142,15 @@ mod tests {
             _ => yo,
             // GET /users/transactions/{transaction_id: String}/accounts => yostr
             GET /users/transactions/{transaction_id: String}/accounts/{account_id: u32} => yo2,
-            GET /users/transactions/{transaction_id}/accounts => yo1
+            GET /users/transactions/{transaction_id: String}/accounts => yo1
             // GET /users/transactions => yo
         );
 
         trace_macros!(false);
         // router(32, Method::GET, "/users/123/accounts/sdf/transactions/123");
-        router(32, Method::GET, "/users/transactions/trans_id_string/accounts/555");
+        assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts"), 33);
+        assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts/123"), 34);
+        // assert_eq!(router(32, Method::GET, "/users/transactions/trans_id_string/accounts/dgdfg"), 32);
+        assert_eq!(router(32, Method::GET, "/users/transact"), 32);
     }
 }
