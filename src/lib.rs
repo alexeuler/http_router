@@ -8,6 +8,8 @@
 //! );
 //!
 //! router(request)
+//! 
+//! Working types: anything that implements FromStr. Since &str doesn't implement FromStr - use String instead.
 //!
 //! fn users_widgets_list(request, user_id: u32) -> impl Future<Item = (), Error = ()> {
 //!     unimplemented!()
@@ -35,18 +37,19 @@ pub enum Method {
 }
 
 macro_rules! router {
-    (@call_pure $request:expr, $handler:ident, $params:expr, $({$id:ident : $ty:ty})*) => {{
-        let mut i: isize = -1;
+    (@parse_type $value:ident, $ty:ty) => { $value.parse::<$ty>().unwrap() };
+
+    (@call_pure $request:expr, $handler:ident, $params:expr, $({$id:ident : $ty:ty : $idx:expr})*) => {{
         $handler($request, $({
-            i += 1;
-            $params[i as usize].parse::<$ty>().unwrap()
+            let value = $params[$idx];
+            router!(@parse_type value, $ty)
         }),*)
     }};
 
     (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident : $ty1:ty} $($p1:ident)*) => {{
         // println!(stringify!($ty1));
         // $handler($request, $params[0].parse::<$ty1>().unwrap())
-        router!(@call_pure $request, $handler, $params, {$id1 : $ty1})
+        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0})
     }};
 
     (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)+ {$id1:ident} $($p1:ident)*) => {{
@@ -119,6 +122,11 @@ mod tests {
         x
     }
 
+    fn yostr(x: u32, y: String) -> u32 {
+        println!("Called yo1 with {} and {}", x, y);
+        x
+    }
+
 
     #[test]
     fn it_works() {
@@ -129,7 +137,7 @@ mod tests {
         // );
         let router = router!(
             _ => yo,
-            GET /users/transactions/{transaction_id: u32}/accounts => yoint
+            GET /users/transactions/{transaction_id: String}/accounts => yostr
             // GET /users/transactions/{transaction_id}/accounts => yo1
             // GET /users/transactions => yo
         );
