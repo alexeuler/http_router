@@ -189,13 +189,13 @@ macro_rules! router {
 
     // Entry pattern
     ($($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
-        move |context, request, method: Method, path: &str| {
+        move |context, request, method: Method, path: String| {
             let mut result = None;
             $(
                 if result.is_none() {
                     // we use closure here so that we could make early return from macros inside of it
                     let closure = || {
-                        router!(@one_route context, request, method, path, $default, $method_token, $handler, $($path_segment)*)
+                        router!(@one_route context, request, method, &path, $default, $method_token, $handler, $($path_segment)*)
                     };
                     result = closure();
                 }
@@ -206,16 +206,16 @@ macro_rules! router {
 
     // Entry pattern - with home first
     ($home_method_token:ident / => $home_handler:ident, $($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
-        move |context, request, method: Method, path: &str| {
+        move |context, request, method: Method, path: String| {
             let closure = || {
-                router!(@one_route context, request, method, path, $default, $home_method_token, $home_handler,)
+                router!(@one_route context, request, method, &path, $default, $home_method_token, $home_handler,)
             };
             let mut result = closure();
             $(
                 if result.is_none() {
                     // we use closure here so that we could make early return from macros inside of it
                     let closure = || {
-                        router!(@one_route context, request, method, path, $default, $method_token, $handler, $($path_segment)*)
+                        router!(@one_route context, request, method, &path, $default, $method_token, $handler, $($path_segment)*)
                     };
                     result = closure();
                 }
@@ -226,7 +226,7 @@ macro_rules! router {
 
     // Entry pattern - default only
     (_ => $default:ident $(,)*) => {
-        move |context, request, _method: Method, _path: &str| {
+        move |context, request, _method: Method, _path: String| {
             $default(context, request)
         }
     }
@@ -285,7 +285,7 @@ mod tests {
         ];
         for test_case in test_cases.into_iter() {
             let (method, path, expected) = test_case.clone();
-            assert_eq!(router((), (), method.clone(), path), expected.to_string());
+            assert_eq!(router((), (), method.clone(), path.to_string()), expected.to_string());
         }
 
         let mut threads: Vec<thread::JoinHandle<_>> = Vec::new();
@@ -295,7 +295,7 @@ mod tests {
                     let number = rand::random::<usize>() % test_cases.len();
                     let test_case = test_cases[number];
                     let (method, path, expected) = test_case;
-                    assert_eq!(router((), (), method.clone(), path), expected.to_string());
+                    assert_eq!(router((), (), method.clone(), path.to_string()), expected.to_string());
                 }
             });
             threads.push(handle);
@@ -313,7 +313,7 @@ mod tests {
             GET / => get_home,
             _ => unreachable
         );
-        assert_eq!(router((), (), Method::GET, "/"), "get_home");
+        assert_eq!(router((), (), Method::GET, "/".to_string()), "get_home");
     }
 
     #[test]
@@ -326,11 +326,11 @@ mod tests {
             POST /users => users,
             _ => fallback
         );
-        assert_eq!(router((), (), Method::GET, "/"), "home");
-        assert_eq!(router((), (), Method::POST, "/users"), "users");
-        assert_eq!(router((), (), Method::GET, "/users"), "fallback");
-        assert_eq!(router((), (), Method::GET, "/us"), "fallback");
-        assert_eq!(router((), (), Method::PATCH, "/"), "fallback");
+        assert_eq!(router((), (), Method::GET, "/".to_string()), "home");
+        assert_eq!(router((), (), Method::POST, "/users".to_string()), "users");
+        assert_eq!(router((), (), Method::GET, "/users".to_string()), "fallback");
+        assert_eq!(router((), (), Method::GET, "/us".to_string()), "fallback");
+        assert_eq!(router((), (), Method::PATCH, "/".to_string()), "fallback");
     }
 
     #[test]
@@ -358,15 +358,15 @@ mod tests {
             _ => panic_test
         );
 
-        assert_eq!(router((), (), Method::GET, "/users"), Method::GET);
-        assert_eq!(router((), (), Method::POST, "/users"), Method::POST);
-        assert_eq!(router((), (), Method::PUT, "/users"), Method::PUT);
-        assert_eq!(router((), (), Method::PATCH, "/users"), Method::PATCH);
-        assert_eq!(router((), (), Method::DELETE, "/users"), Method::DELETE);
-        assert_eq!(router((), (), Method::OPTIONS, "/users"), Method::OPTIONS);
-        assert_eq!(router((), (), Method::TRACE, "/users"), Method::TRACE);
-        assert_eq!(router((), (), Method::CONNECT, "/users"), Method::CONNECT);
-        assert_eq!(router((), (), Method::HEAD, "/users"), Method::HEAD);
+        assert_eq!(router((), (), Method::GET, "/users".to_string()), Method::GET);
+        assert_eq!(router((), (), Method::POST, "/users".to_string()), Method::POST);
+        assert_eq!(router((), (), Method::PUT, "/users".to_string()), Method::PUT);
+        assert_eq!(router((), (), Method::PATCH, "/users".to_string()), Method::PATCH);
+        assert_eq!(router((), (), Method::DELETE, "/users".to_string()), Method::DELETE);
+        assert_eq!(router((), (), Method::OPTIONS, "/users".to_string()), Method::OPTIONS);
+        assert_eq!(router((), (), Method::TRACE, "/users".to_string()), Method::TRACE);
+        assert_eq!(router((), (), Method::CONNECT, "/users".to_string()), Method::CONNECT);
+        assert_eq!(router((), (), Method::HEAD, "/users".to_string()), Method::HEAD);
     }
 
     #[test]
@@ -392,14 +392,14 @@ mod tests {
             _ => unreachable,
         );
 
-        assert_eq!(router((), (), Method::GET, "/users"), "");
-        assert_eq!(router((), (), Method::GET, "/users/id1"), "id1");
-        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2"), "id1id2");
-        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3"), "id1id2id3");
-        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4"), "id1id2id3id4");
-        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5"), "id1id2id3id4id5");
-        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6"), "id1id2id3id4id5id6");
-        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6/users7/id7"), "id1id2id3id4id5id6id7");
+        assert_eq!(router((), (), Method::GET, "/users".to_string()), "");
+        assert_eq!(router((), (), Method::GET, "/users/id1".to_string()), "id1");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2".to_string()), "id1id2");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3".to_string()), "id1id2id3");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4".to_string()), "id1id2id3id4");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5".to_string()), "id1id2id3id4id5");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6".to_string()), "id1id2id3id4id5id6");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6/users7/id7".to_string()), "id1id2id3id4id5id6id7");
     }
 }
 

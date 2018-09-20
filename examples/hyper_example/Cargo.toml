@@ -6,5 +6,7 @@ authors = ["AlexeyKarasev <karasev.alexey@gmail.com>"]
 [dependencies]
 http_router = { path = "../..", version = "0.1.0" }
 hyper = "0.12"
+serde = "1"
+serde_derive = "1"
 serde_json = "1"
 futures = "0.1"
