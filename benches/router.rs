@@ -3,6 +3,7 @@
 extern crate test;
 extern crate http_router;
 extern crate rand;
+extern crate regex;
 
 use test::Bencher;
 #[macro_use]
@@ -55,3 +56,15 @@ fn bench_router(b: &mut Bencher) {
     });
 }
 
+#[bench]
+fn bench_plain_regex(b: &mut Bencher) {
+    let re = regex::Regex::new(r#"/users/([\w-]+)/transactions/([\w-]+)"#).unwrap();
+    b.iter(|| {
+        // number of routes in router
+        for i in 0..9 {
+            for matches in re.captures("/users/234/transactions/dfgd") {
+
+            }
+        }
+    });
+}
