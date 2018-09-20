@@ -74,55 +74,55 @@ macro_rules! router {
     }};
 
     // call handler with params
-    (@call_pure $request:expr, $handler:ident, $params:expr, $({$id:ident : $ty:ty : $idx:expr}),*) => {{
-        $handler($request, $({
+    (@call_pure $context:expr, $request:expr, $handler:ident, $params:expr, $({$id:ident : $ty:ty : $idx:expr}),*) => {{
+        $handler($context, $request, $({
             let value = $params[$idx];
             router!(@parse_type value, $ty)
         }),*)
     }};
 
     // Extract params from route, 0 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)*) => {{
-        $handler($request)
+    (@call, $context:expr, $request:expr, $handler:ident, $params:expr, $($p:ident)*) => {{
+        $handler($context, $request)
     }};
 
     // Extract params from route, 1 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)*) => {{
-        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0})
+    (@call, $context:expr, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)*) => {{
+        router!(@call_pure $context, $request, $handler, $params, {$id1 : $ty1 : 0})
     }};
 
     // Extract params from route, 2 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)*) => {{
-        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1})
+    (@call, $context:expr, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)*) => {{
+        router!(@call_pure $context, $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1})
     }};
 
     // Extract params from route, 3 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)*) => {{
-        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2})
+    (@call, $context:expr, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)*) => {{
+        router!(@call_pure $context, $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2})
     }};
 
     // Extract params from route, 4 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)*) => {{
-        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3})
+    (@call, $context:expr, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)*) => {{
+        router!(@call_pure $context, $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3})
     }};
 
     // Extract params from route, 5 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)*) => {{
-        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4})
+    (@call, $context:expr, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)*) => {{
+        router!(@call_pure $context, $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4})
     }};
 
     // Extract params from route, 6 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)*) => {{
-        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4}, {$id6 : $ty6 : 5})
+    (@call, $context:expr, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)*) => {{
+        router!(@call_pure $context, $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4}, {$id6 : $ty6 : 5})
     }};
 
     // Extract params from route, 7 params case
-    (@call, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)* {$id7:ident : $ty7:ty} $($p7:ident)*) => {{
-        router!(@call_pure $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4}, {$id6 : $ty6 : 5}, {$id6 : $ty6 : 6})
+    (@call, $context:expr, $request:expr, $handler:ident, $params:expr, $($p:ident)* {$id1:ident : $ty1:ty} $($p1:ident)* {$id2:ident : $ty2:ty} $($p2:ident)* {$id3:ident : $ty3:ty} $($p3:ident)* {$id4:ident : $ty4:ty} $($p4:ident)* {$id5:ident : $ty5:ty} $($p5:ident)* {$id6:ident : $ty6:ty} $($p6:ident)* {$id7:ident : $ty7:ty} $($p7:ident)*) => {{
+        router!(@call_pure $context, $request, $handler, $params, {$id1 : $ty1 : 0}, {$id2 : $ty2 : 1}, {$id3 : $ty3 : 2}, {$id4 : $ty4 : 3}, {$id5 : $ty5 : 4}, {$id6 : $ty6 : 5}, {$id6 : $ty6 : 6})
     }};
 
     // Test a particular route for match and forward to @call if there is match
-    (@one_route_with_method $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
+    (@one_route_with_method $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, $expected_method: expr, $handler:ident, $($path_segment:tt)*) => {{
         if $method != $expected_method { return None };
         let mut s = "^".to_string();
         $(
@@ -140,94 +140,94 @@ macro_rules! router {
         let re = $crate::create_regex(&s);
         if let Some(captures) = re.captures($path) {
             let _matches: Vec<&str> = captures.iter().skip(1).filter(|x| x.is_some()).map(|x| x.unwrap().as_str()).collect();
-            Some(router!(@call, $request, $handler, _matches, $($path_segment)*))
+            Some(router!(@call, $context, $request, $handler, _matches, $($path_segment)*))
         } else {
             None
         }
     }};
 
     // Transform GET token to Method::GET
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, GET, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::GET, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, GET, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::GET, $handler, $($path_segment)*)
     };
 
     // Transform POST token to Method::POST
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, POST, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::POST, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, POST, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::POST, $handler, $($path_segment)*)
     };
     // Transform PUT token to Method::PUT
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, PUT, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::PUT, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, PUT, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::PUT, $handler, $($path_segment)*)
     };
     // Transform PATCH token to Method::PATCH
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, PATCH, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::PATCH, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, PATCH, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::PATCH, $handler, $($path_segment)*)
     };
     // Transform DELETE token to Method::DELETE
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, DELETE, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::DELETE, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, DELETE, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::DELETE, $handler, $($path_segment)*)
     };
     // Transform OPTIONS token to Method::OPTIONS
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, OPTIONS, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::OPTIONS, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, OPTIONS, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::OPTIONS, $handler, $($path_segment)*)
     };
 
     // Transform HEAD token to Method::HEAD
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, HEAD, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::HEAD, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, HEAD, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::HEAD, $handler, $($path_segment)*)
     };
 
     // Transform TRACE token to Method::TRACE
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, TRACE, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::TRACE, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, TRACE, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::TRACE, $handler, $($path_segment)*)
     };
 
     // Transform CONNECT token to Method::CONNECT
-    (@one_route $request:expr, $method:expr, $path:expr, $default:expr, CONNECT, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $request, $method, $path, $default, Method::CONNECT, $handler, $($path_segment)*)
+    (@one_route $context:expr, $request:expr, $method:expr, $path:expr, $default:expr, CONNECT, $handler:ident, $($path_segment:tt)*) => {
+        router!(@one_route_with_method $context, $request, $method, $path, $default, Method::CONNECT, $handler, $($path_segment)*)
     };
 
     // Entry pattern
     ($($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
-        move |request, method: Method, path: &str| {
+        move |context, request, method: Method, path: &str| {
             let mut result = None;
             $(
                 if result.is_none() {
                     // we use closure here so that we could make early return from macros inside of it
                     let closure = || {
-                        router!(@one_route request, method, path, $default, $method_token, $handler, $($path_segment)*)
+                        router!(@one_route context, request, method, path, $default, $method_token, $handler, $($path_segment)*)
                     };
                     result = closure();
                 }
             )*
-            result.unwrap_or_else(|| $default(request))
+            result.unwrap_or_else(|| $default(context, request))
         }
     }};
 
     // Entry pattern - with home first
     ($home_method_token:ident / => $home_handler:ident, $($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
-        move |request, method: Method, path: &str| {
+        move |context, request, method: Method, path: &str| {
             let closure = || {
-                router!(@one_route request, method, path, $default, $home_method_token, $home_handler,)
+                router!(@one_route context, request, method, path, $default, $home_method_token, $home_handler,)
             };
             let mut result = closure();
             $(
                 if result.is_none() {
                     // we use closure here so that we could make early return from macros inside of it
                     let closure = || {
-                        router!(@one_route request, method, path, $default, $method_token, $handler, $($path_segment)*)
+                        router!(@one_route context, request, method, path, $default, $method_token, $handler, $($path_segment)*)
                     };
                     result = closure();
                 }
             )*
-            result.unwrap_or_else(|| $default(request))
+            result.unwrap_or_else(|| $default(context, request))
         }
     }};
 
     // Entry pattern - default only
     (_ => $default:ident $(,)*) => {
-        |request, _method: Method, _path: &str| {
-            $default(request)
+        move |context, request, _method: Method, _path: &str| {
+            $default(context, request)
         }
     }
 }
@@ -246,15 +246,15 @@ mod tests {
 
     #[test]
     fn test_real_life() {
-        let get_users = |_: ()| "get_users".to_string();
-        let post_users = |_: ()| "post_users".to_string();
-        let patch_users = |_: (), id: u32| format!("patch_users({})", id);
-        let delete_users = |_: (), id: u32| format!("delete_users({})", id);
-        let get_transactions = |_: (), id: u32| format!("get_transactions({})", id);
-        let post_transactions = |_: (), id: u32| format!("post_transactions({})", id);
-        let patch_transactions = |_: (), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
-        let delete_transactions = |_: (), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
-        let fallback = |_: ()| "404".to_string();
+        let get_users = |_: (), _: ()| "get_users".to_string();
+        let post_users = |_: (), _: ()| "post_users".to_string();
+        let patch_users = |_: (), _: (), id: u32| format!("patch_users({})", id);
+        let delete_users = |_: (), _: (), id: u32| format!("delete_users({})", id);
+        let get_transactions = |_: (), _: (), id: u32| format!("get_transactions({})", id);
+        let post_transactions = |_: (), _: (), id: u32| format!("post_transactions({})", id);
+        let patch_transactions = |_: (), _: (), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
+        let delete_transactions = |_: (), _: (), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
+        let fallback = |_: (), _: ()| "404".to_string();
 
         let router = router!(
             GET / => get_users,
@@ -285,7 +285,7 @@ mod tests {
         ];
         for test_case in test_cases.into_iter() {
             let (method, path, expected) = test_case.clone();
-            assert_eq!(router((), method.clone(), path), expected.to_string());
+            assert_eq!(router((), (), method.clone(), path), expected.to_string());
         }
 
         let mut threads: Vec<thread::JoinHandle<_>> = Vec::new();
@@ -295,7 +295,7 @@ mod tests {
                     let number = rand::random::<usize>() % test_cases.len();
                     let test_case = test_cases[number];
                     let (method, path, expected) = test_case;
-                    assert_eq!(router((), method.clone(), path), expected.to_string());
+                    assert_eq!(router((), (), method.clone(), path), expected.to_string());
                 }
             });
             threads.push(handle);
@@ -307,44 +307,44 @@ mod tests {
 
     #[test]
     fn test_home() {
-        let get_home = |_: ()| "get_home";
-        let unreachable = |_: ()| unreachable!();
+        let get_home = |_: (), _: ()| "get_home";
+        let unreachable = |_: (), _: ()| unreachable!();
         let router = router!(
             GET / => get_home,
             _ => unreachable
         );
-        assert_eq!(router((), Method::GET, "/"), "get_home");
+        assert_eq!(router((), (), Method::GET, "/"), "get_home");
     }
 
     #[test]
     fn test_fallback() {
-        let home = |_: ()| "home";
-        let users = |_: ()| "users";
-        let fallback = |_: ()| "fallback";
+        let home = |_: (), _: ()| "home";
+        let users = |_: (), _: ()| "users";
+        let fallback = |_: (), _: ()| "fallback";
         let router = router!(
             GET / => home,
             POST /users => users,
             _ => fallback
         );
-        assert_eq!(router((), Method::GET, "/"), "home");
-        assert_eq!(router((), Method::POST, "/users"), "users");
-        assert_eq!(router((), Method::GET, "/users"), "fallback");
-        assert_eq!(router((), Method::GET, "/us"), "fallback");
-        assert_eq!(router((), Method::PATCH, "/"), "fallback");
+        assert_eq!(router((), (), Method::GET, "/"), "home");
+        assert_eq!(router((), (), Method::POST, "/users"), "users");
+        assert_eq!(router((), (), Method::GET, "/users"), "fallback");
+        assert_eq!(router((), (), Method::GET, "/us"), "fallback");
+        assert_eq!(router((), (), Method::PATCH, "/"), "fallback");
     }
 
     #[test]
     fn test_verbs() {
-        let get_test = |_: ()| Method::GET;
-        let post_test = |_: ()| Method::POST;
-        let put_test = |_: ()| Method::PUT;
-        let patch_test = |_: ()| Method::PATCH;
-        let delete_test = |_: ()| Method::DELETE;
-        let connect_test = |_: ()| Method::CONNECT;
-        let options_test = |_: ()| Method::OPTIONS;
-        let trace_test = |_: ()| Method::TRACE;
-        let head_test = |_: ()| Method::HEAD;
-        let panic_test = |_: ()| unreachable!();
+        let get_test = |_: (), _: ()| Method::GET;
+        let post_test = |_: (), _: ()| Method::POST;
+        let put_test = |_: (), _: ()| Method::PUT;
+        let patch_test = |_: (), _: ()| Method::PATCH;
+        let delete_test = |_: (), _: ()| Method::DELETE;
+        let connect_test = |_: (), _: ()| Method::CONNECT;
+        let options_test = |_: (), _: ()| Method::OPTIONS;
+        let trace_test = |_: (), _: ()| Method::TRACE;
+        let head_test = |_: (), _: ()| Method::HEAD;
+        let panic_test = |_: (), _: ()| unreachable!();
         let router = router!(
             GET /users => get_test,
             POST /users => post_test,
@@ -358,28 +358,28 @@ mod tests {
             _ => panic_test
         );
 
-        assert_eq!(router((), Method::GET, "/users"), Method::GET);
-        assert_eq!(router((), Method::POST, "/users"), Method::POST);
-        assert_eq!(router((), Method::PUT, "/users"), Method::PUT);
-        assert_eq!(router((), Method::PATCH, "/users"), Method::PATCH);
-        assert_eq!(router((), Method::DELETE, "/users"), Method::DELETE);
-        assert_eq!(router((), Method::OPTIONS, "/users"), Method::OPTIONS);
-        assert_eq!(router((), Method::TRACE, "/users"), Method::TRACE);
-        assert_eq!(router((), Method::CONNECT, "/users"), Method::CONNECT);
-        assert_eq!(router((), Method::HEAD, "/users"), Method::HEAD);
+        assert_eq!(router((), (), Method::GET, "/users"), Method::GET);
+        assert_eq!(router((), (), Method::POST, "/users"), Method::POST);
+        assert_eq!(router((), (), Method::PUT, "/users"), Method::PUT);
+        assert_eq!(router((), (), Method::PATCH, "/users"), Method::PATCH);
+        assert_eq!(router((), (), Method::DELETE, "/users"), Method::DELETE);
+        assert_eq!(router((), (), Method::OPTIONS, "/users"), Method::OPTIONS);
+        assert_eq!(router((), (), Method::TRACE, "/users"), Method::TRACE);
+        assert_eq!(router((), (), Method::CONNECT, "/users"), Method::CONNECT);
+        assert_eq!(router((), (), Method::HEAD, "/users"), Method::HEAD);
     }
 
     #[test]
     fn test_params_number() {
-        let zero = |_: (), | String::new();
-        let one = |_: (), p1: String| format!("{}", &p1);
-        let two = |_: (), p1: String, p2: String| format!("{}{}", &p1, &p2);
-        let three = |_: (), p1: String, p2: String, p3: String| format!("{}{}{}", &p1, &p2, &p3);
-        let four = |_: (), p1: String, p2: String, p3: String, p4: String| format!("{}{}{}{}", &p1, &p2, &p3, &p4);
-        let five = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String| format!("{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5);
-        let six = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String| format!("{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6);
-        let seven = |_: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String, p7: String| format!("{}{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6, &p7);
-        let unreachable = |_: ()| unreachable!();
+        let zero = |_: (), _: ()| String::new();
+        let one = |_: (), _: (), p1: String| format!("{}", &p1);
+        let two = |_: (), _: (), p1: String, p2: String| format!("{}{}", &p1, &p2);
+        let three = |_: (), _: (), p1: String, p2: String, p3: String| format!("{}{}{}", &p1, &p2, &p3);
+        let four = |_: (), _: (), p1: String, p2: String, p3: String, p4: String| format!("{}{}{}{}", &p1, &p2, &p3, &p4);
+        let five = |_: (), _: (), p1: String, p2: String, p3: String, p4: String, p5: String| format!("{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5);
+        let six = |_: (), _: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String| format!("{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6);
+        let seven = |_: (), _: (), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String, p7: String| format!("{}{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6, &p7);
+        let unreachable = |_: (), _: ()| unreachable!();
         let router = router!(
             GET /users => zero,
             GET /users/{p1: String} => one,
@@ -392,14 +392,14 @@ mod tests {
             _ => unreachable,
         );
 
-        assert_eq!(router((), Method::GET, "/users"), "");
-        assert_eq!(router((), Method::GET, "/users/id1"), "id1");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2"), "id1id2");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3"), "id1id2id3");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4"), "id1id2id3id4");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5"), "id1id2id3id4id5");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6"), "id1id2id3id4id5id6");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6/users7/id7"), "id1id2id3id4id5id6id7");
+        assert_eq!(router((), (), Method::GET, "/users"), "");
+        assert_eq!(router((), (), Method::GET, "/users/id1"), "id1");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2"), "id1id2");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3"), "id1id2id3");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4"), "id1id2id3id4");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5"), "id1id2id3id4id5");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6"), "id1id2id3id4id5id6");
+        assert_eq!(router((), (), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6/users7/id7"), "id1id2id3id4id5id6id7");
     }
 }
 
