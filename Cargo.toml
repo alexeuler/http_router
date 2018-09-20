@@ -6,9 +6,6 @@ authors = ["Алексей Карасев <karasev.alexey@gmail.com>"]
 [lib]
 doctest = false
 
-[features]
-unstable = []
-
 [dependencies]
 regex = "1"
 lazy_static = "1"
