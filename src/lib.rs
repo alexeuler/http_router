@@ -22,10 +22,18 @@
 //! }
 //! ```
 
-// #![feature(trace_macros)]
-// #![cfg_attr(feature = "unstable", feature(test))]
-
 extern crate regex;
+#[macro_use]
+extern crate lazy_static;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::cell::RefCell;
+
+lazy_static! {
+    static ref REGEXES: Arc<Mutex<RefCell<HashMap<String, regex::Regex>>>> = {
+        Arc::new(Mutex::new(RefCell::new(HashMap::new())))
+    };
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Method {
@@ -41,7 +49,19 @@ pub enum Method {
 }
 
 pub fn create_regex(s: &str) -> regex::Regex {
-    regex::Regex::new(s).unwrap()
+    let mut result: Option<regex::Regex> = None;
+    {
+        let regexes_cell = REGEXES.lock().expect("Failed to obtain mutex lock");
+        let regexes = regexes_cell.borrow();
+        result = regexes.get(s).cloned();
+    };
+    result.unwrap_or_else(|| {
+        let re = regex::Regex::new(s).unwrap();
+        let regexes_cell = REGEXES.lock().expect("Failed to obtain mutex lock");
+        let mut regexes = regexes_cell.borrow_mut();
+        regexes.insert(s.to_string(), re.clone());
+        re
+    })
 }
 
 #[macro_export]
@@ -223,54 +243,6 @@ mod tests {
 
     const NUMBER_OF_THREADS_FOR_REAL_LIFE_TEST: usize = 20;
     const NUMBER_OF_TESTS_FOR_REAL_LIFE_TEST: usize = 100;
-
-    // #[bench]
-    // fn bench_router(b: &mut Bencher) {
-    //     let get_users = |_: ()| "get_users".to_string();
-    //     let post_users = |_: ()| "post_users".to_string();
-    //     let patch_users = |_: (), id: u32| format!("patch_users({})", id);
-    //     let delete_users = |_: (), id: u32| format!("delete_users({})", id);
-    //     let get_transactions = |_: (), id: u32| format!("get_transactions({})", id);
-    //     let post_transactions = |_: (), id: u32| format!("post_transactions({})", id);
-    //     let patch_transactions = |_: (), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
-    //     let delete_transactions = |_: (), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
-    //     let fallback = |_: ()| "404".to_string();
-
-    //     let router = router!(
-    //         GET / => get_users,
-    //         GET /users => get_users,
-    //         POST /users => post_users,
-    //         PATCH /users/{user_id: u32} => patch_users,
-    //         DELETE /users/{user_id: u32} => delete_users,
-    //         GET /users/{user_id: u32}/transactions => get_transactions,
-    //         POST /users/{user_id: u32}/transactions => post_transactions,
-    //         PATCH /users/{user_id: u32}/transactions/{hash: String} => patch_transactions,
-    //         DELETE /users/{user_id: u32}/transactions/{hash: String} => delete_transactions,
-    //         _ => fallback,
-    //     );
-    //     let test_cases = [
-    //         (Method::GET, "/", "get_users"),
-    //         (Method::GET, "/users", "get_users"),
-    //         (Method::POST, "/users", "post_users"),
-    //         (Method::PATCH, "/users/12", "patch_users(12)"),
-    //         (Method::DELETE, "/users/132134", "delete_users(132134)"),
-    //         (Method::GET, "/users/534/transactions", "get_transactions(534)"),
-    //         (Method::POST, "/users/534/transactions", "post_transactions(534)"),
-    //         (Method::PATCH, "/users/534/transactions/0x234", "patch_transactions(534, 0x234)"),
-    //         (Method::DELETE, "/users/534/transactions/0x234", "delete_transactions(534, 0x234)"),
-    //         (Method::DELETE, "/users/5d34/transactions/0x234", "404"),
-    //         (Method::POST, "/users/534/transactions/0x234", "404"),
-    //         (Method::GET, "/u", "404"),
-    //         (Method::POST, "/", "404"),
-    //     ];
-
-    //     b.iter(|| {
-    //         let number = rand::random::<usize>() % test_cases.len();
-    //         let test_case = test_cases[number];
-    //         let (method, path, expected) = test_case;
-    //         let _ = router((), method.clone(), path);
-    //     });
-    // }
 
     #[test]
     fn test_real_life() {
