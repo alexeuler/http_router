@@ -241,8 +241,8 @@ mod tests {
     use std::thread;
     use super::*;
 
-    const NUMBER_OF_THREADS_FOR_REAL_LIFE_TEST: usize = 20;
-    const NUMBER_OF_TESTS_FOR_REAL_LIFE_TEST: usize = 100;
+    const NUMBER_OF_THREADS_FOR_REAL_LIFE_TEST: usize = 4;
+    const NUMBER_OF_TESTS_FOR_REAL_LIFE_TEST: usize = 3000;
 
     #[test]
     fn test_real_life() {
