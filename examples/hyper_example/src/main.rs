@@ -36,9 +36,13 @@ struct Repo {
     users: Vec<User>,
 }
 
-struct Application {
+struct Context {
     repo: Arc<Repo>,
-    router: Arc<Fn(Arc<Repo>, Request<Body>, Method, String) -> ServerFuture>,
+}
+
+#[derive(Clone)]
+struct Application {
+    pub repo: Arc<Repo>,
 }
 
 impl Service for Application
@@ -49,15 +53,22 @@ impl Service for Application
     type Future = ServerFuture;
 
     fn call(&mut self, req: Request<Body>) -> ServerFuture {
-        (self.router)(self.repo.clone(), req, Method::GET, req.uri().path().to_string())
+        let router = router!(
+            GET / => get_users,
+            _ => not_found,
+        );
+
+        let path = req.uri().path();
+        let ctx = Context { repo: self.repo.clone() };
+        router(ctx, Method::GET, path)
     }
 }
 
-fn get_users(context: Arc<Repo>, _request: Request<Body>) -> ServerFuture {
+fn get_users(context: &Context) -> ServerFuture {
     unimplemented!()
 }
 
-fn not_found(context: Arc<Repo>, _request: Request<Body>) -> ServerFuture {
+fn not_found(context: &Context) -> ServerFuture {
     unimplemented!()
 }
 
@@ -84,31 +95,21 @@ fn main() {
         ],
     });
 
-    let repo: Repo = serde_json::from_value(json).expect("Failed to parse repo");
-    let repo = Arc::new(repo);
 
-    let router = router!(
-        GET / => get_users,
-        _ => not_found,
-    );
-    let router = Arc::new(router);
+    hyper::rt::run(future::lazy(move || {
+        let repo: Repo = serde_json::from_value(json).expect("Failed to parse repo");
+        let repo = Arc::new(repo);
+        let app = Application { repo };
+        let new_service = move || {
+            let res: Result<_, hyper::Error> = Ok(app.clone());
+            res
+        };
 
-    let serve = Http::new()
-        .serve_addr(&addr, move || {
-            let app = Application { repo: repo.clone(), router: router.clone() };
-            Ok(app)
-        }).unwrap_or_else(|why| {
-            eprintln!("Http Server Initialization Error: {}", why);
-            std::process::exit(1);
-        });
+        let server = Server::bind(&addr)
+            .serve(new_service)
+            .map_err(|e| eprintln!("server error: {}", e));
 
-    hyper::rt::spawn(
-        serve
-            .for_each(move |conn| {
-                hyper::rt::spawn(conn.map(|_| ()).map_err(|why| eprintln!("Server Error: {:?}", why)));
-                Ok(())
-            }).map_err(|_| ())
-    );   
-
-    hyper::rt::run(future::empty::<(), ()>());
+        println!("Listening on http://{}", addr);
+        server
+    }));
 }
