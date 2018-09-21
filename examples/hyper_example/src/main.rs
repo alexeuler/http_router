@@ -18,26 +18,27 @@ use futures::future;
 
 type ServerFuture = Box<Future<Item=Response<Body>, Error=hyper::Error> + Send>;
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Transaction {
     hash: String,
     value: usize,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct User {
     id: usize,
     name: String,
     transactions: Vec<Transaction>,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Repo {
     users: Vec<User>,
 }
 
 struct Context {
-    repo: Arc<Repo>,
+    pub repo: Arc<Repo>,
+    pub body: String,
 }
 
 #[derive(Clone)]
@@ -53,23 +54,45 @@ impl Service for Application
     type Future = ServerFuture;
 
     fn call(&mut self, req: Request<Body>) -> ServerFuture {
-        let router = router!(
-            GET / => get_users,
-            _ => not_found,
-        );
+        let repo = self.repo.clone();
+        let (req, body) = req.into_parts();
+        Box::new(
+            read_body(body).and_then(move |body| {
+                let router = router!(
+                    GET / => get_users,
+                    _ => not_found,
+                );
 
-        let path = req.uri().path();
-        let ctx = Context { repo: self.repo.clone() };
-        router(ctx, Method::GET, path)
+                let path = req.uri.path();
+                let ctx = Context { repo , body };
+                router(ctx, Method::GET, path)
+            })
+        )
     }
 }
 
 fn get_users(context: &Context) -> ServerFuture {
-    unimplemented!()
+    let text = serde_json::to_string(&context.repo.users).expect("Failer to serialize json");
+    Box::new(
+        future::ok(
+            Response::builder()
+                .status(200)
+                .body(text.into())
+                .unwrap()
+        )
+    )
 }
 
 fn not_found(context: &Context) -> ServerFuture {
-    unimplemented!()
+    let text = "Not found";
+    Box::new(
+        future::ok(
+            Response::builder()
+                .status(404)
+                .body(text.into())
+                .unwrap()
+        )
+    )
 }
 
 fn main() {
@@ -112,4 +135,12 @@ fn main() {
         println!("Listening on http://{}", addr);
         server
     }));
+}
+
+/// Reads body of request and response in Future format
+pub fn read_body(body: hyper::Body) -> impl Future<Item = String, Error = hyper::Error> {
+    body.fold(Vec::new(), |mut acc, chunk| {
+        acc.extend_from_slice(&*chunk);
+        future::ok::<_, hyper::Error>(acc)
+    }).map(|bytes| String::from_utf8(bytes).expect("String expected"))
 }
