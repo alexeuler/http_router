@@ -148,43 +148,43 @@ macro_rules! router {
 
     // Transform GET token to Method::GET
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, GET, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::GET, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::GET, $handler, $($path_segment)*)
     };
 
     // Transform POST token to Method::POST
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, POST, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::POST, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::POST, $handler, $($path_segment)*)
     };
     // Transform PUT token to Method::PUT
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, PUT, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::PUT, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::PUT, $handler, $($path_segment)*)
     };
     // Transform PATCH token to Method::PATCH
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, PATCH, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::PATCH, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::PATCH, $handler, $($path_segment)*)
     };
     // Transform DELETE token to Method::DELETE
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, DELETE, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::DELETE, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::DELETE, $handler, $($path_segment)*)
     };
     // Transform OPTIONS token to Method::OPTIONS
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, OPTIONS, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::OPTIONS, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::OPTIONS, $handler, $($path_segment)*)
     };
 
     // Transform HEAD token to Method::HEAD
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, HEAD, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::HEAD, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::HEAD, $handler, $($path_segment)*)
     };
 
     // Transform TRACE token to Method::TRACE
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, TRACE, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::TRACE, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::TRACE, $handler, $($path_segment)*)
     };
 
     // Transform CONNECT token to Method::CONNECT
     (@one_route $context:expr, $method:expr, $path:expr, $default:expr, CONNECT, $handler:ident, $($path_segment:tt)*) => {
-        router!(@one_route_with_method $context, $method, $path, $default, Method::CONNECT, $handler, $($path_segment)*)
+        router!(@one_route_with_method $context, $method, $path, $default, $crate::Method::CONNECT, $handler, $($path_segment)*)
     };
 
     // Entry pattern
