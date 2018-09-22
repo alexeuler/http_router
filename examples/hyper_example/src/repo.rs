@@ -52,10 +52,15 @@ impl Repo {
     }
 
     pub fn get_transactions(&mut self, user_id: usize) -> Result<Vec<Transaction>, Error> {
-        self.find_user(user_id).map(|user| user.transactions.clone())
+        self.find_user(user_id)
+            .map(|user| user.transactions.clone())
     }
 
-    pub fn create_transaction(&mut self, user_id: usize, tx: Transaction) -> Result<Transaction, Error> {
+    pub fn create_transaction(
+        &mut self,
+        user_id: usize,
+        tx: Transaction,
+    ) -> Result<Transaction, Error> {
         self.find_user(user_id).map(move |ref mut user| {
             user.transactions.push(tx.clone());
             tx
@@ -64,13 +69,21 @@ impl Repo {
 
     pub fn delete_transactions(&mut self, user_id: usize, hash: String) -> Result<(), Error> {
         self.find_user(user_id).map(|ref mut user| {
-            user.transactions = user.transactions.clone().into_iter().filter(|t| t.hash == hash).collect();
+            user.transactions = user
+                .transactions
+                .clone()
+                .into_iter()
+                .filter(|t| t.hash == hash)
+                .collect();
         })
     }
 
-    pub fn update_transaction(&mut self, user_id: usize, tx: Transaction) -> Result<Transaction, Error> {
-        self.delete_transactions(user_id, tx.hash.clone()).and_then(|_| {
-            self.create_transaction(user_id, tx)
-        })
+    pub fn update_transaction(
+        &mut self,
+        user_id: usize,
+        tx: Transaction,
+    ) -> Result<Transaction, Error> {
+        self.delete_transactions(user_id, tx.hash.clone())
+            .and_then(|_| self.create_transaction(user_id, tx))
     }
 }

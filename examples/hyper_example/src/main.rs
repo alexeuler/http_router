@@ -52,6 +52,8 @@ impl Service for Application {
                     GET / => get_users,
                     GET /users => get_users,
                     POST /users => post_users,
+                    PUT /users/{user_id: usize} => put_users,
+                    DELETE /users/{user_id: usize} => delete_users,
                     _ => not_found,
                 );
 

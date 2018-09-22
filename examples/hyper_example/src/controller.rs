@@ -4,7 +4,7 @@ use super::types::ServerFuture;
 use super::utils::response_with_model;
 use failure::Fail;
 use futures::prelude::*;
-use hyper::Response;
+use hyper::{Body, Response};
 use serde_json;
 use std::sync::{Arc, Mutex};
 
@@ -36,6 +36,31 @@ pub fn post_users(context: &Context) -> ServerFuture {
                 response_with_model(&user)
             }),
     )
+}
+
+pub fn put_users(context: &Context, _user_id: usize) -> ServerFuture {
+    let repo_arc_mutex = context.repo.clone();
+    let context_clone = context.clone();
+    Box::new(
+        serde_json::from_str(&context.body)
+            .into_future()
+            .map_err(move |e| {
+                e.context(format!("body: {}", &context_clone.body))
+                    .context(ErrorKind::Json)
+                    .into()
+            })
+            .and_then(move |user: User| {
+                let mut repo = repo_arc_mutex.lock().expect("Failed to obtain mutex lock");
+                let user = repo.update_user(user);
+                response_with_model(&user)
+            }),
+    )
+}
+
+pub fn delete_users(context: &Context, id: usize) -> ServerFuture {
+    let mut repo = context.repo.lock().expect("Failed to obtain mutex lock");
+    repo.delete_user(id);
+    Box::new(Ok(Response::builder().status(204).body(Body::empty()).unwrap()).into_future())
 }
 
 pub fn not_found(_context: &Context) -> ServerFuture {
