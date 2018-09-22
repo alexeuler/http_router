@@ -2,7 +2,10 @@
 
 This is a simple yet expressive router for http requests, abstract enough to be used with any http library on stable Rust.
 
-light deps
+__Key features__:
+- Very expressive routes with fully typed parameters
+- Can be used with any http lib
+- Few dependencies (only `regex` and `lazy_static`)
 
 ### Getting started (for Hyper >= 0.12)
 
@@ -115,8 +118,6 @@ The `router!` macro is independent of any framework. However, it returns a closu
 `path` is a `&str` which is the current route for a request.
 
 Once you define these 3 params, you can use the `router!` macro for routing.
-
-_NOTE: By default this crate is configured to be used with hyper >=0.12. If you want to use it with other libs, you need to opt out of default features for this crate_
 
 ### Benchmarks
 

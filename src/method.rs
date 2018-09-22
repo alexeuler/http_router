@@ -1,6 +1,7 @@
 #[cfg(feature = "with_hyper")]
 use hyper::Method as HyperMethod;
 
+/// Http verbs
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Method {
     GET,
