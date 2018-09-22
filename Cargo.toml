@@ -9,6 +9,12 @@ repository = "https://github.com/alleycat-at-git/http_router"
 license = "MIT"
 documentation = "https://docs.rs/http_router"
 
+include = [
+  "Cargo.toml",
+  "LICENSE",
+  "src/**/*"
+]
+
 [lib]
 doctest = false
 
