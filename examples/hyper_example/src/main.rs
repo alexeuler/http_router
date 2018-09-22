@@ -26,24 +26,25 @@ use std::sync::{Arc, Mutex};
 type ServerFuture = Box<Future<Item = Response<Body>, Error = Error> + Send>;
 type StdFuture = Box<Future<Item = Response<Body>, Error = Compat<Error>> + Send>;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Transaction {
     hash: String,
     value: usize,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct User {
     id: usize,
     name: String,
     transactions: Vec<Transaction>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Repo {
     users: Vec<User>,
 }
 
+#[derive(Debug, Clone)]
 struct Context {
     pub repo: Arc<Mutex<Repo>>,
     pub body: String,
@@ -68,6 +69,8 @@ impl Service for Application {
                 .and_then(move |body| {
                     let router = router!(
                     GET / => get_users,
+                    GET /users => get_users,
+                    POST /users => post_users,
                     _ => not_found,
                 );
 
@@ -85,11 +88,20 @@ fn get_users(context: &Context) -> ServerFuture {
     response_with_model(&repo.users)
 }
 
-// fn post_users(context: &Context) -> ServerFuture {
-//     let repo = context.repo.lock().expect("Failed to obtain mutex lock");
-//     let user = serde_json::from_str(context.body)?
-//     response_with_model(&repo.users)
-// }
+fn post_users(context: &Context) -> ServerFuture {
+    let repo_arc_mutex = context.repo.clone();
+    let context_clone = context.clone();
+    Box::new(
+        serde_json::from_str(&context.body)
+            .into_future()
+            .map_err(move |e| e.context(format!("body: {}", &context_clone.body)).context(ErrorKind::Json).into())
+            .and_then(move |user: User| {
+                let mut repo = repo_arc_mutex.lock().expect("Failed to obtain mutex lock");
+                repo.users.push(user.clone());
+                response_with_model(&user)
+            })
+    )
+}
 
 fn not_found(_context: &Context) -> ServerFuture {
     let text = "Not found";

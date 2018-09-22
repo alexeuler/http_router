@@ -1,5 +1,4 @@
 use failure::{Backtrace, Context, Fail};
-use std::error::Error as StdError;
 use std::fmt;
 use std::fmt::Display;
 
