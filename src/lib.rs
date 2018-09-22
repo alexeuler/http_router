@@ -1,5 +1,3 @@
-#![allow(unused_mut)]
-
 //! This is an abstract http router that can be used with any library, incl. Hyper, Actix, etc.
 //! Usage:
 //!
@@ -21,6 +19,8 @@
 //!     unimplemented!()
 //! }
 //! ```
+//!
+//! To see macro output `cargo +nightly rustc -- -Zunstable-options --pretty=expanded`
 
 extern crate regex;
 #[macro_use]
@@ -31,28 +31,25 @@ extern crate hyper;
 mod method;
 
 pub use self::method::Method;
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
-    static ref REGEXES: Arc<Mutex<RefCell<HashMap<String, regex::Regex>>>> =
-        { Arc::new(Mutex::new(RefCell::new(HashMap::new()))) };
+    static ref REGEXES: Arc<Mutex<HashMap<String, regex::Regex>>> =
+        { Arc::new(Mutex::new(HashMap::new())) };
 }
 
 /// This is an implementation detail and *should not* be called directly!
 #[doc(hidden)]
-pub fn create_regex(s: &str) -> regex::Regex {
-    let mut result: Option<regex::Regex> = None;
+pub fn __http_router_create_regex(s: &str) -> regex::Regex {
+    let mut _result: Option<regex::Regex> = None;
     {
-        let regexes_cell = REGEXES.lock().expect("Failed to obtain mutex lock");
-        let regexes = regexes_cell.borrow();
-        result = regexes.get(s).cloned();
+        let regexes = REGEXES.lock().expect("Failed to obtain mutex lock");
+        _result = regexes.get(s).cloned();
     };
-    result.unwrap_or_else(|| {
+    _result.unwrap_or_else(|| {
         let re = regex::Regex::new(s).unwrap();
-        let regexes_cell = REGEXES.lock().expect("Failed to obtain mutex lock");
-        let mut regexes = regexes_cell.borrow_mut();
+        let mut regexes = REGEXES.lock().expect("Failed to obtain mutex lock");
         regexes.insert(s.to_string(), re.clone());
         re
     })
@@ -131,7 +128,7 @@ macro_rules! router {
         // handle home case
         if s.len() == 1 { s.push('/') }
         s.push('$');
-        let re = $crate::create_regex(&s);
+        let re = $crate::__http_router_create_regex(&s);
         if let Some(captures) = re.captures($path) {
             let _matches: Vec<&str> = captures.iter().skip(1).filter(|x| x.is_some()).map(|x| x.unwrap().as_str()).collect();
             Some(router!(@call, $context, $handler, _matches, $($path_segment)*))
@@ -228,7 +225,6 @@ macro_rules! router {
 
 #[cfg(test)]
 mod tests {
-    // extern crate test;
     extern crate rand;
 
     // use self::test::Bencher;
@@ -317,6 +313,7 @@ mod tests {
         }
     }
 
+    #[allow(unused_mut)]
     #[test]
     fn test_home() {
         let get_home = |_: &()| "get_home";
