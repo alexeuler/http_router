@@ -1,7 +1,13 @@
 [package]
 name = "http_router"
 version = "0.1.0"
-authors = ["Алексей Карасев <karasev.alexey@gmail.com>"]
+authors = ["Alexey Karasev <karasev.alexey@gmail.com>"]
+readme = "README.md"
+description = "A simple yet expressive router for http requests, abstract enough to be used with any http library on stable Rust"
+keywords = ["router", "http", "hyper"]
+repository = "https://github.com/alleycat-at-git/http_router"
+license = "MIT"
+documentation = "https://docs.rs/http_router"
 
 [lib]
 doctest = false
