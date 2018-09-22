@@ -11,6 +11,9 @@ extern crate futures;
 extern crate failure;
 
 mod error;
+mod repo;
+mod utils;
+mod types;
 
 use self::error::{Error, ErrorKind};
 use failure::{Compat, Fail};
@@ -19,30 +22,12 @@ use futures::prelude::*;
 use hyper::rt::{Future, Stream};
 use hyper::service::Service;
 use hyper::{Body, Request, Response, Server};
-use serde::Serialize;
-use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
+use self::utils::{read_body, response_with_model};
+use self::repo::{Repo, Transaction, User};
+use self::types::{ServerFuture};
 
-type ServerFuture = Box<Future<Item = Response<Body>, Error = Error> + Send>;
 type StdFuture = Box<Future<Item = Response<Body>, Error = Compat<Error>> + Send>;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct Transaction {
-    hash: String,
-    value: usize,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct User {
-    id: usize,
-    name: String,
-    transactions: Vec<Transaction>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct Repo {
-    users: Vec<User>,
-}
 
 #[derive(Debug, Clone)]
 struct Context {
@@ -151,40 +136,3 @@ fn main() {
     }));
 }
 
-// Reads body of request and response in Future format
-fn read_body(body: hyper::Body) -> impl Future<Item = String, Error = Error> {
-    body.fold(Vec::new(), |mut acc, chunk| {
-        acc.extend_from_slice(&*chunk);
-        future::ok::<_, hyper::Error>(acc)
-    }).map_err(|e| e.context(ErrorKind::Hyper).into())
-        .and_then(|bytes| {
-            let bytes_clone = bytes.clone();
-            String::from_utf8(bytes).map_err(|e| {
-                e.context(format!("bytes: {:?}", &bytes_clone))
-                    .context(ErrorKind::Utf8)
-                    .into()
-            })
-        })
-}
-
-fn response_with_model<M>(model: &M) -> ServerFuture
-where
-    M: Debug + Serialize,
-{
-    Box::new(
-        serde_json::to_string(&model)
-            .map_err(|e| {
-                e.context(format!("model: {:?}", &model))
-                    .context(ErrorKind::Json)
-                    .into()
-            })
-            .into_future()
-            .map(|text| {
-                Response::builder()
-                    .status(200)
-                    .header("Content-Type", "application/json")
-                    .body(text.into())
-                    .unwrap()
-            }),
-    )
-}
