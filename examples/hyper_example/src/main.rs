@@ -17,14 +17,12 @@ mod types;
 mod utils;
 
 use self::controller::*;
-use self::error::{Error, ErrorKind};
-use self::repo::{Repo, Transaction, User};
-use self::types::ServerFuture;
-use self::utils::{read_body, response_with_model};
+use self::error::{Error};
+use self::repo::{Repo};
+use self::utils::{read_body};
 use failure::{Compat, Fail};
 use futures::future;
-use futures::prelude::*;
-use hyper::rt::{Future, Stream};
+use hyper::rt::{Future};
 use hyper::service::Service;
 use hyper::{Body, Request, Response, Server};
 use std::sync::{Arc, Mutex};

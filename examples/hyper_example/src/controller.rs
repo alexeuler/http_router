@@ -114,8 +114,11 @@ pub fn put_transactions(context: &Context, user_id: usize, _hash: String) -> Ser
 
 pub fn delete_transactions(context: &Context, user_id: usize, hash: String) -> ServerFuture {
     let mut repo = context.repo.lock().expect("Failed to obtain mutex lock");
-    repo.delete_transaction(user_id, hash);
-    Box::new(Ok(Response::builder().status(204).body(Body::empty()).unwrap()).into_future())
+    Box::new(
+        repo.delete_transaction(user_id, hash).map(|_| {
+            Response::builder().status(204).body(Body::empty()).unwrap()
+        }).into_future()
+    )
 }
 
 

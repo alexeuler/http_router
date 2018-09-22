@@ -1,5 +1,4 @@
 use super::error::{Error, ErrorKind};
-use failure::Fail;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transaction {
