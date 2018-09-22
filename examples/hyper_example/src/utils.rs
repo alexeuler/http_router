@@ -1,14 +1,13 @@
-use serde::Serialize;
-use std::fmt::Debug;
-use hyper;
-use futures::prelude::*;
-use futures::future;
-use failure::Fail;
 use super::error::{Error, ErrorKind};
-use serde_json;
 use super::types::ServerFuture;
+use failure::Fail;
+use futures::future;
+use futures::prelude::*;
+use hyper;
 use hyper::Response;
-
+use serde::Serialize;
+use serde_json;
+use std::fmt::Debug;
 
 // Reads body of request and response in Future format
 pub fn read_body(body: hyper::Body) -> impl Future<Item = String, Error = Error> {
