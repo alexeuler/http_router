@@ -1,8 +1,8 @@
-#[macro_use] 
+#[macro_use]
 extern crate http_router;
 extern crate hyper;
 extern crate serde;
-#[macro_use] 
+#[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
@@ -13,7 +13,7 @@ use hyper::rt::{Future, Stream};
 use hyper::service::Service;
 use hyper::server::conn::Http;
 use std::sync::Arc;
-use http_router::*;
+// use http_router::*;
 use futures::future;
 
 type ServerFuture = Box<Future<Item=Response<Body>, Error=hyper::Error> + Send>;
@@ -65,7 +65,7 @@ impl Service for Application
 
                 let path = req.uri.path();
                 let ctx = Context { repo , body };
-                router(ctx, Method::GET, path)
+                router(ctx, req.method.into(), path)
             })
         )
     }

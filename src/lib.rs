@@ -10,7 +10,7 @@
 //! );
 //!
 //! router(context)
-//! 
+//!
 //! Working types: anything that implements FromStr. Since &str doesn't implement FromStr - use String instead.
 //!
 //! fn users_widgets_list(context, user_id: u32) -> impl Future<Item = (), Error = ()> {
@@ -25,6 +25,12 @@
 extern crate regex;
 #[macro_use]
 extern crate lazy_static;
+#[cfg(feature = "with_hyper")]
+extern crate hyper;
+
+mod method;
+
+pub use self::method::Method;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::cell::RefCell;
@@ -35,19 +41,8 @@ lazy_static! {
     };
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Method {
-    GET,
-    POST,
-    PUT,
-    PATCH,
-    DELETE,
-    OPTIONS,
-    HEAD,
-    CONNECT,
-    TRACE
-}
-
+/// This is an implementation detail and *should not* be called directly!
+#[doc(hidden)]
 pub fn create_regex(s: &str) -> regex::Regex {
     let mut result: Option<regex::Regex> = None;
     {
@@ -189,7 +184,7 @@ macro_rules! router {
 
     // Entry pattern
     ($($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
-        move |context, method: Method, path: &str| {
+        move |context, method: $crate::Method, path: &str| {
             let mut result = None;
             $(
                 if result.is_none() {
@@ -206,7 +201,7 @@ macro_rules! router {
 
     // Entry pattern - with home first
     ($home_method_token:ident / => $home_handler:ident, $($method_token:ident $(/$path_segment:tt)+ => $handler:ident,)* _ => $default:ident $(,)*) => {{
-        move |context, method: Method, path: &str| {
+        move |context, method: $crate::Method, path: &str| {
             let closure = || {
                 router!(@one_route context, method, path, $default, $home_method_token, $home_handler,)
             };
@@ -226,7 +221,7 @@ macro_rules! router {
 
     // Entry pattern - default only
     (_ => $default:ident $(,)*) => {
-        |context, _method: Method, _path: &str| {
+        |context, _method: $crate::Method, _path: &str| {
             $default(&context)
         }
     }
@@ -234,7 +229,7 @@ macro_rules! router {
 
 #[cfg(test)]
 mod tests {
-    // extern crate test;    
+    // extern crate test;
     extern crate rand;
 
     // use self::test::Bencher;
