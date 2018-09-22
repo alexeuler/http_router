@@ -50,10 +50,17 @@ impl Service for Application {
                 .and_then(move |body| {
                     let router = router!(
                     GET / => get_users,
+
                     GET /users => get_users,
                     POST /users => post_users,
                     PUT /users/{user_id: usize} => put_users,
                     DELETE /users/{user_id: usize} => delete_users,
+
+                    GET /users/{user_id: usize}/transactions => get_transactions,
+                    POST /users/{user_id: usize}/transactions => post_transactions,
+                    PUT /users/{user_id: usize}/transactions/{hash: String} => put_transactions,
+                    DELETE /users/{user_id: usize}/transactions/{hash: String} => delete_transactions,
+
                     _ => not_found,
                 );
 

@@ -63,6 +63,62 @@ pub fn delete_users(context: &Context, id: usize) -> ServerFuture {
     Box::new(Ok(Response::builder().status(204).body(Body::empty()).unwrap()).into_future())
 }
 
+pub fn get_transactions(context: &Context, user_id: usize) -> ServerFuture {
+    let mut repo = context.repo.lock().expect("Failed to obtain mutex lock");
+    Box::new(
+        repo.get_transactions(user_id).into_future().and_then(|txs| {
+            response_with_model(&txs)
+        })
+    )
+}
+
+pub fn post_transactions(context: &Context, user_id: usize) -> ServerFuture {
+    let repo_arc_mutex = context.repo.clone();
+    let context_clone = context.clone();
+    Box::new(
+        serde_json::from_str(&context.body)
+            .into_future()
+            .map_err(move |e| {
+                e.context(format!("body: {}", &context_clone.body))
+                    .context(ErrorKind::Json)
+                    .into()
+            })
+            .and_then(move |tx: Transaction| {
+                let mut repo = repo_arc_mutex.lock().expect("Failed to obtain mutex lock");
+                repo.create_transaction(user_id, tx)
+            }).and_then(|tx| {
+                response_with_model(&tx)
+            })
+    )
+}
+
+pub fn put_transactions(context: &Context, user_id: usize, _hash: String) -> ServerFuture {
+    let repo_arc_mutex = context.repo.clone();
+    let context_clone = context.clone();
+    Box::new(
+        serde_json::from_str(&context.body)
+            .into_future()
+            .map_err(move |e| {
+                e.context(format!("body: {}", &context_clone.body))
+                    .context(ErrorKind::Json)
+                    .into()
+            })
+            .and_then(move |tx: Transaction| {
+                let mut repo = repo_arc_mutex.lock().expect("Failed to obtain mutex lock");
+                repo.update_transaction(user_id, tx)
+            }).and_then(|tx| {
+                response_with_model(&tx)
+            })
+    )
+}
+
+pub fn delete_transactions(context: &Context, user_id: usize, hash: String) -> ServerFuture {
+    let mut repo = context.repo.lock().expect("Failed to obtain mutex lock");
+    repo.delete_transaction(user_id, hash);
+    Box::new(Ok(Response::builder().status(204).body(Body::empty()).unwrap()).into_future())
+}
+
+
 pub fn not_found(_context: &Context) -> ServerFuture {
     let text = "Not found";
     Box::new(Ok(Response::builder().status(404).body(text.into()).unwrap()).into_future())

@@ -67,13 +67,13 @@ impl Repo {
         })
     }
 
-    pub fn delete_transactions(&mut self, user_id: usize, hash: String) -> Result<(), Error> {
+    pub fn delete_transaction(&mut self, user_id: usize, hash: String) -> Result<(), Error> {
         self.find_user(user_id).map(|ref mut user| {
             user.transactions = user
                 .transactions
                 .clone()
                 .into_iter()
-                .filter(|t| t.hash == hash)
+                .filter(|t| t.hash != hash)
                 .collect();
         })
     }
@@ -83,7 +83,7 @@ impl Repo {
         user_id: usize,
         tx: Transaction,
     ) -> Result<Transaction, Error> {
-        self.delete_transactions(user_id, tx.hash.clone())
+        self.delete_transaction(user_id, tx.hash.clone())
             .and_then(|_| self.create_transaction(user_id, tx))
     }
 }
