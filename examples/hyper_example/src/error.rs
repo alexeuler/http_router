@@ -15,6 +15,8 @@ pub enum ErrorKind {
     Json,
     #[fail(display = "Error inside hyper framework")]
     Hyper,
+    #[fail(display = "Record not found")]
+    NotFound,
 }
 
 impl Fail for Error {

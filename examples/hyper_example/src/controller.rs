@@ -16,7 +16,7 @@ pub struct Context {
 
 pub fn get_users(context: &Context) -> ServerFuture {
     let repo = context.repo.lock().expect("Failed to obtain mutex lock");
-    response_with_model(&repo.users)
+    response_with_model(&repo.get_users())
 }
 
 pub fn post_users(context: &Context) -> ServerFuture {
@@ -32,7 +32,7 @@ pub fn post_users(context: &Context) -> ServerFuture {
             })
             .and_then(move |user: User| {
                 let mut repo = repo_arc_mutex.lock().expect("Failed to obtain mutex lock");
-                repo.users.push(user.clone());
+                let user = repo.create_user(user);
                 response_with_model(&user)
             }),
     )
