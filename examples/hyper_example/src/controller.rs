@@ -66,9 +66,9 @@ pub fn delete_users(context: &Context, id: usize) -> ServerFuture {
 pub fn get_transactions(context: &Context, user_id: usize) -> ServerFuture {
     let mut repo = context.repo.lock().expect("Failed to obtain mutex lock");
     Box::new(
-        repo.get_transactions(user_id).into_future().and_then(|txs| {
-            response_with_model(&txs)
-        })
+        repo.get_transactions(user_id)
+            .into_future()
+            .and_then(|txs| response_with_model(&txs)),
     )
 }
 
@@ -86,9 +86,8 @@ pub fn post_transactions(context: &Context, user_id: usize) -> ServerFuture {
             .and_then(move |tx: Transaction| {
                 let mut repo = repo_arc_mutex.lock().expect("Failed to obtain mutex lock");
                 repo.create_transaction(user_id, tx)
-            }).and_then(|tx| {
-                response_with_model(&tx)
             })
+            .and_then(|tx| response_with_model(&tx)),
     )
 }
 
@@ -106,21 +105,19 @@ pub fn put_transactions(context: &Context, user_id: usize, _hash: String) -> Ser
             .and_then(move |tx: Transaction| {
                 let mut repo = repo_arc_mutex.lock().expect("Failed to obtain mutex lock");
                 repo.update_transaction(user_id, tx)
-            }).and_then(|tx| {
-                response_with_model(&tx)
             })
+            .and_then(|tx| response_with_model(&tx)),
     )
 }
 
 pub fn delete_transactions(context: &Context, user_id: usize, hash: String) -> ServerFuture {
     let mut repo = context.repo.lock().expect("Failed to obtain mutex lock");
     Box::new(
-        repo.delete_transaction(user_id, hash).map(|_| {
-            Response::builder().status(204).body(Body::empty()).unwrap()
-        }).into_future()
+        repo.delete_transaction(user_id, hash)
+            .map(|_| Response::builder().status(204).body(Body::empty()).unwrap())
+            .into_future(),
     )
 }
-
 
 pub fn not_found(_context: &Context) -> ServerFuture {
     let text = "Not found";

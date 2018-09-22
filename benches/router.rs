@@ -1,9 +1,9 @@
 #![feature(test)]
 
-extern crate test;
 extern crate http_router;
 extern crate rand;
 extern crate regex;
+extern crate test;
 
 use test::Bencher;
 #[macro_use]
@@ -17,8 +17,10 @@ fn bench_router(b: &mut Bencher) {
     let delete_users = |_: (), id: u32| format!("delete_users({})", id);
     let get_transactions = |_: (), id: u32| format!("get_transactions({})", id);
     let post_transactions = |_: (), id: u32| format!("post_transactions({})", id);
-    let patch_transactions = |_: (), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
-    let delete_transactions = |_: (), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
+    let patch_transactions =
+        |_: (), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
+    let delete_transactions =
+        |_: (), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
     let fallback = |_: ()| "404".to_string();
 
     let router = router!(
@@ -39,10 +41,26 @@ fn bench_router(b: &mut Bencher) {
         (Method::POST, "/users", "post_users"),
         (Method::PATCH, "/users/12", "patch_users(12)"),
         (Method::DELETE, "/users/132134", "delete_users(132134)"),
-        (Method::GET, "/users/534/transactions", "get_transactions(534)"),
-        (Method::POST, "/users/534/transactions", "post_transactions(534)"),
-        (Method::PATCH, "/users/534/transactions/0x234", "patch_transactions(534, 0x234)"),
-        (Method::DELETE, "/users/534/transactions/0x234", "delete_transactions(534, 0x234)"),
+        (
+            Method::GET,
+            "/users/534/transactions",
+            "get_transactions(534)",
+        ),
+        (
+            Method::POST,
+            "/users/534/transactions",
+            "post_transactions(534)",
+        ),
+        (
+            Method::PATCH,
+            "/users/534/transactions/0x234",
+            "patch_transactions(534, 0x234)",
+        ),
+        (
+            Method::DELETE,
+            "/users/534/transactions/0x234",
+            "delete_transactions(534, 0x234)",
+        ),
         (Method::DELETE, "/users/5d34/transactions/0x234", "404"),
         (Method::POST, "/users/534/transactions/0x234", "404"),
         (Method::GET, "/u", "404"),
@@ -62,9 +80,7 @@ fn bench_plain_regex(b: &mut Bencher) {
     b.iter(|| {
         // number of routes in router
         for i in 0..9 {
-            for matches in re.captures("/users/234/transactions/dfgd") {
-
-            }
+            for matches in re.captures("/users/234/transactions/dfgd") {}
         }
     });
 }

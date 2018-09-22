@@ -11,7 +11,7 @@ pub enum Method {
     OPTIONS,
     HEAD,
     CONNECT,
-    TRACE
+    TRACE,
 }
 
 #[cfg(feature = "with_hyper")]
@@ -31,4 +31,3 @@ impl From<HyperMethod> for Method {
         }
     }
 }
-

@@ -31,14 +31,13 @@ extern crate hyper;
 mod method;
 
 pub use self::method::Method;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::cell::RefCell;
 
 lazy_static! {
-    static ref REGEXES: Arc<Mutex<RefCell<HashMap<String, regex::Regex>>>> = {
-        Arc::new(Mutex::new(RefCell::new(HashMap::new())))
-    };
+    static ref REGEXES: Arc<Mutex<RefCell<HashMap<String, regex::Regex>>>> =
+        { Arc::new(Mutex::new(RefCell::new(HashMap::new()))) };
 }
 
 /// This is an implementation detail and *should not* be called directly!
@@ -233,8 +232,8 @@ mod tests {
     extern crate rand;
 
     // use self::test::Bencher;
-    use std::thread;
     use super::*;
+    use std::thread;
 
     const NUMBER_OF_THREADS_FOR_REAL_LIFE_TEST: usize = 4;
     const NUMBER_OF_TESTS_FOR_REAL_LIFE_TEST: usize = 3000;
@@ -247,8 +246,10 @@ mod tests {
         let delete_users = |_: &(), id: u32| format!("delete_users({})", id);
         let get_transactions = |_: &(), id: u32| format!("get_transactions({})", id);
         let post_transactions = |_: &(), id: u32| format!("post_transactions({})", id);
-        let patch_transactions = |_: &(), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
-        let delete_transactions = |_: &(), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
+        let patch_transactions =
+            |_: &(), id: u32, hash: String| format!("patch_transactions({}, {})", id, hash);
+        let delete_transactions =
+            |_: &(), id: u32, hash: String| format!("delete_transactions({}, {})", id, hash);
         let fallback = |_: &()| "404".to_string();
 
         let router = router!(
@@ -269,10 +270,26 @@ mod tests {
             (Method::POST, "/users", "post_users"),
             (Method::PATCH, "/users/12", "patch_users(12)"),
             (Method::DELETE, "/users/132134", "delete_users(132134)"),
-            (Method::GET, "/users/534/transactions", "get_transactions(534)"),
-            (Method::POST, "/users/534/transactions", "post_transactions(534)"),
-            (Method::PATCH, "/users/534/transactions/0x234", "patch_transactions(534, 0x234)"),
-            (Method::DELETE, "/users/534/transactions/0x234", "delete_transactions(534, 0x234)"),
+            (
+                Method::GET,
+                "/users/534/transactions",
+                "get_transactions(534)",
+            ),
+            (
+                Method::POST,
+                "/users/534/transactions",
+                "post_transactions(534)",
+            ),
+            (
+                Method::PATCH,
+                "/users/534/transactions/0x234",
+                "patch_transactions(534, 0x234)",
+            ),
+            (
+                Method::DELETE,
+                "/users/534/transactions/0x234",
+                "delete_transactions(534, 0x234)",
+            ),
             (Method::DELETE, "/users/5d34/transactions/0x234", "404"),
             (Method::POST, "/users/534/transactions/0x234", "404"),
             (Method::GET, "/u", "404"),
@@ -366,14 +383,29 @@ mod tests {
 
     #[test]
     fn test_params_number() {
-        let zero = |_: &(), | String::new();
+        let zero = |_: &()| String::new();
         let one = |_: &(), p1: String| format!("{}", &p1);
         let two = |_: &(), p1: String, p2: String| format!("{}{}", &p1, &p2);
         let three = |_: &(), p1: String, p2: String, p3: String| format!("{}{}{}", &p1, &p2, &p3);
-        let four = |_: &(), p1: String, p2: String, p3: String, p4: String| format!("{}{}{}{}", &p1, &p2, &p3, &p4);
-        let five = |_: &(), p1: String, p2: String, p3: String, p4: String, p5: String| format!("{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5);
-        let six = |_: &(), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String| format!("{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6);
-        let seven = |_: &(), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String, p7: String| format!("{}{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6, &p7);
+        let four = |_: &(), p1: String, p2: String, p3: String, p4: String| {
+            format!("{}{}{}{}", &p1, &p2, &p3, &p4)
+        };
+        let five = |_: &(), p1: String, p2: String, p3: String, p4: String, p5: String| {
+            format!("{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5)
+        };
+        let six =
+            |_: &(), p1: String, p2: String, p3: String, p4: String, p5: String, p6: String| {
+                format!("{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6)
+            };
+        let seven =
+            |_: &(),
+             p1: String,
+             p2: String,
+             p3: String,
+             p4: String,
+             p5: String,
+             p6: String,
+             p7: String| format!("{}{}{}{}{}{}{}", &p1, &p2, &p3, &p4, &p5, &p6, &p7);
         let unreachable = |_: &()| unreachable!();
         let router = router!(
             GET /users => zero,
@@ -390,13 +422,43 @@ mod tests {
         assert_eq!(router((), Method::GET, "/users"), "");
         assert_eq!(router((), Method::GET, "/users/id1"), "id1");
         assert_eq!(router((), Method::GET, "/users/id1/users2/id2"), "id1id2");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3"), "id1id2id3");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4"), "id1id2id3id4");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5"), "id1id2id3id4id5");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6"), "id1id2id3id4id5id6");
-        assert_eq!(router((), Method::GET, "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6/users7/id7"), "id1id2id3id4id5id6id7");
+        assert_eq!(
+            router((), Method::GET, "/users/id1/users2/id2/users3/id3"),
+            "id1id2id3"
+        );
+        assert_eq!(
+            router(
+                (),
+                Method::GET,
+                "/users/id1/users2/id2/users3/id3/users4/id4"
+            ),
+            "id1id2id3id4"
+        );
+        assert_eq!(
+            router(
+                (),
+                Method::GET,
+                "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5"
+            ),
+            "id1id2id3id4id5"
+        );
+        assert_eq!(
+            router(
+                (),
+                Method::GET,
+                "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6"
+            ),
+            "id1id2id3id4id5id6"
+        );
+        assert_eq!(
+            router(
+                (),
+                Method::GET,
+                "/users/id1/users2/id2/users3/id3/users4/id4/users5/id5/users6/id6/users7/id7"
+            ),
+            "id1id2id3id4id5id6id7"
+        );
     }
 }
-
 
 // cargo +nightly rustc -- -Zunstable-options --pretty=expanded

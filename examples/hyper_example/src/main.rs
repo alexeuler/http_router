@@ -17,12 +17,12 @@ mod types;
 mod utils;
 
 use self::controller::*;
-use self::error::{Error};
-use self::repo::{Repo};
-use self::utils::{read_body};
+use self::error::Error;
+use self::repo::Repo;
+use self::utils::read_body;
 use failure::{Compat, Fail};
 use futures::future;
-use hyper::rt::{Future};
+use hyper::rt::Future;
 use hyper::service::Service;
 use hyper::{Body, Request, Response, Server};
 use std::sync::{Arc, Mutex};
@@ -47,20 +47,20 @@ impl Service for Application {
             read_body(body)
                 .and_then(move |body| {
                     let router = router!(
-                    GET / => get_users,
+                        GET / => get_users,
 
-                    GET /users => get_users,
-                    POST /users => post_users,
-                    PUT /users/{user_id: usize} => put_users,
-                    DELETE /users/{user_id: usize} => delete_users,
+                        GET /users => get_users,
+                        POST /users => post_users,
+                        PUT /users/{user_id: usize} => put_users,
+                        DELETE /users/{user_id: usize} => delete_users,
 
-                    GET /users/{user_id: usize}/transactions => get_transactions,
-                    POST /users/{user_id: usize}/transactions => post_transactions,
-                    PUT /users/{user_id: usize}/transactions/{hash: String} => put_transactions,
-                    DELETE /users/{user_id: usize}/transactions/{hash: String} => delete_transactions,
+                        GET /users/{user_id: usize}/transactions => get_transactions,
+                        POST /users/{user_id: usize}/transactions => post_transactions,
+                        PUT /users/{user_id: usize}/transactions/{hash: String} => put_transactions,
+                        DELETE /users/{user_id: usize}/transactions/{hash: String} => delete_transactions,
 
-                    _ => not_found,
-                );
+                        _ => not_found,
+                    );
 
                     let path = req.uri.path();
                     let ctx = Context { repo, body };
