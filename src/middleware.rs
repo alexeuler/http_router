@@ -3,6 +3,7 @@ use hyper::{Request, Response, Body};
 use hyper::service::Service;
 use std::error::Error as StdError;
 use super::Method;
+use std::sync::Arc;
 
 pub struct RouterMiddleware<T, C, E, F, R>
 where F: Fn(Request<Body>) -> Box<Future<Item = C, Error = E>>,
@@ -11,7 +12,7 @@ C: 'static
 {
     upstream: T,
     ctx_ctor: F,
-    router: R,
+    router: Arc<R>,
 }
 
 impl <T, C, E, F, R> RouterMiddleware<T, C, E, F, R>
@@ -23,7 +24,7 @@ C: 'static
         RouterMiddleware {
             upstream,
             ctx_ctor,
-            router
+            router: Arc::new(router),
         }
     }
 }
@@ -45,7 +46,7 @@ T::Error: From<E>,
     fn call(&mut self, req: Request<Body>) -> Self::Future {
         let method: Method = req.method().clone().into();
         let path = req.uri().path().to_string();
-        let router = self.router;
+        let router = self.router.clone();
         Box::new(
             (self.ctx_ctor)(req).and_then(move |ctx| {
                 router(ctx, method, &path)
