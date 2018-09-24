@@ -129,6 +129,8 @@ extern crate lazy_static;
 extern crate hyper;
 
 mod method;
+// #[cfg(feature = "with_hyper")]
+mod middleware;
 
 pub use self::method::Method;
 use std::collections::HashMap;
