@@ -233,7 +233,7 @@ macro_rules! router {
             s.push('/');
             let path_segment = stringify!($path_segment);
             if path_segment.starts_with('{') {
-                s.push_str(r#"([\w-]+)"#);
+                s.push_str(r#"([^/?#]+)"#);
             } else {
                 s.push_str(path_segment);
             }
